@@ -1,1 +1,1 @@
-export {};
+export { posts } from "./blog";
