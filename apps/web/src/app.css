@@ -1,5 +1,126 @@
 @import "tailwindcss";
 
+/* ============================================
+   Design Tokens — OKLCH Color Space
+   ============================================ */
+
+/* Light mode (default) */
+:root {
+  --color-bg: oklch(1 0 0);
+  --color-fg: oklch(0.25 0 0);
+  --color-primary: oklch(0.33 0 0);
+  --color-secondary: oklch(0.96 0 0);
+  --color-border: oklch(0.92 0 0);
+  --color-muted: oklch(0.52 0 0);
+  --color-accent: oklch(0.7 0.16 240);
+  --color-destructive: oklch(0.55 0.2 25);
+  --radius-base: 0.625rem;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+}
+
+/* Dark mode */
+.dark {
+  --color-bg: oklch(0.25 0 0);
+  --color-fg: oklch(0.96 0 0);
+  --color-primary: oklch(0.96 0 0);
+  --color-secondary: oklch(0.33 0 0);
+  --color-border: oklch(1 0 0 / 0.1);
+  --color-muted: oklch(0.43 0 0);
+}
+
+/* ============================================
+   Tailwind 4 @theme — bind tokens to utilities
+   ============================================ */
+
+@theme {
+  --color-bg: var(--color-bg);
+  --color-fg: var(--color-fg);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-border: var(--color-border);
+  --color-muted: var(--color-muted);
+  --color-accent: var(--color-accent);
+  --color-destructive: var(--color-destructive);
+  --radius-base: var(--radius-base);
+}
+
+/* ============================================
+   Base styles
+   ============================================ */
+
 body {
-  @apply bg-neutral-950 text-neutral-100;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Utilities
+   ============================================ */
+
+.link-underline {
+  position: relative;
+  text-decoration: none;
+  color: var(--color-fg);
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-accent);
+  transition: width 0.25s ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* ============================================
+   View Transitions — Theme Ripple
+   ============================================ */
+
+.theme-toggle {
+  view-transition-name: theme-toggle;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  animation: clip-reveal 1s ease-in-out;
+}
+
+@keyframes clip-reveal {
+  from {
+    clip-path: circle(0 at var(--tx) var(--ty));
+  }
+  to {
+    clip-path: circle(200vmax at var(--tx) var(--ty));
+  }
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
