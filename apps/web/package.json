@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@febriannugroho/api": "workspace:*",
+    "@febriannugroho/db": "workspace:*",
     "@febriannugroho/env": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/openapi": "catalog:",
