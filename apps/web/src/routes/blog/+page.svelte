@@ -4,6 +4,8 @@
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
+
+  type Post = (typeof data.posts)[number];
 </script>
 
 <svelte:head>

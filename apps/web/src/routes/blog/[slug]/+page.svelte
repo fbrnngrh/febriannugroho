@@ -3,6 +3,7 @@
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
+  const PostComponent = $derived(data.PostComponent);
 </script>
 
 <svelte:head>
@@ -32,7 +33,7 @@
 
   <!-- Content -->
   <div class="prose-custom space-y-4 leading-relaxed">
-    {@html data.post.htmlContent}
+    <PostComponent />
   </div>
 
   <!-- Footer -->

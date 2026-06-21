@@ -23,6 +23,7 @@
       "dependencies": ["feat-002"],
       "status": "done",
       "evidence": "Branch feat/portfolio-svelte-rebuild (12 commits). bun run -F web check: 0 errors. db:push + seed: 3 posts. Worktree: .worktrees/portfolio-svelte-rebuild"
+    },
     {
       "id": "feat-004",
       "name": "Home Sectioned Layout",
@@ -30,6 +31,14 @@
       "dependencies": ["feat-003"],
       "status": "done",
       "evidence": "docs/decisions/2026-06-20-home-sectioned-layout.md; +page.svelte restructured 2026-06-20"
+    },
+    {
+      "id": "feat-005",
+      "name": "Static Site Migration",
+      "description": "Convert from full-stack (oRPC + PostgreSQL + adapter-node) to 100% static SSG: adapter-static, mdsvex blog from .md files, mailto: contact, remove packages/api, packages/db, packages/env, Docker, RPC routes",
+      "dependencies": ["feat-004"],
+      "status": "done",
+      "evidence": "adapter-static + mdsvex installed; 3 blog posts migrated to src/content/blog/*.md; contact form replaced with mailto:; packages/api, packages/db, packages/env deleted; hooks.server.ts, orpc.*, routes/rpc/ removed; Docker files + bts.jsonc removed; README/AGENTS.md updated 2026-06-21"
     }
   ]
 }

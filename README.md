@@ -1,37 +1,19 @@
 # febriannugroho
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines SvelteKit, Self, ORPC, and more.
+A 100% static personal portfolio built with SvelteKit 5, TailwindCSS, and mdsvex for blog posts.
 
 ## Features
 
-- **TypeScript** - For type safety and improved developer experience
-- **SvelteKit** - Web framework for building Svelte apps
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Husky** - Git hooks for code quality
-- **Turborepo** - Optimized monorepo build system
+- **SvelteKit 5** — Static site generation (SSG) with `adapter-static`
+- **TailwindCSS v4** — Utility-first CSS with OKLCH design tokens
+- **mdsvex** — Markdown blog posts compiled at build time
+- **Turborepo** — Monorepo build system
+- **Husky** — Git hooks for code quality
 
 ## Getting Started
 
-First, install the dependencies:
-
 ```bash
 bun install
-```
-
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/web/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
-bun run db:push
 ```
 
 Then, run the development server:
@@ -40,47 +22,38 @@ Then, run the development server:
 bun run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser to see the fullstack application.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Deployment
+## Build
 
-### Docker Compose
+```bash
+bun run build
+```
 
-- Target: web + server
-- Config: `docker-compose.yml` (app Dockerfiles live in `apps/*/Dockerfile`)
-- Build images: bun run docker:build
-- Start: bun run docker:up
-- Logs: bun run docker:logs
-- Stop: bun run docker:down
-
-Environment variables are read from each app's `.env` file (baked into web builds for public variables) and overridden in `docker-compose.yml` for container networking.
-
-## Git Hooks and Formatting
-
-- Initialize hooks: `bun run prepare`
+Static output is generated in `apps/web/build/`. Deploy to any static host (Vercel, Netlify, GitHub Pages, Cloudflare Pages).
 
 ## Project Structure
 
 ```
 febriannugroho/
 ├── apps/
-│   └── web/         # Fullstack application (SvelteKit)
+│   └── web/              # SvelteKit static site
+│       ├── src/
+│       │   ├── content/blog/   # Markdown blog posts
+│       │   ├── lib/components/ # Reusable UI components
+│       │   └── routes/         # SvelteKit routes
 ├── packages/
-│   ├── api/         # API layer / business logic
-│   └── db/          # Database schema & queries
+│   └── config/           # Shared TypeScript config
 ```
 
 ## Available Scripts
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run docker:build`: Build the Docker Compose images
-- `bun run docker:up`: Build and start the Docker Compose stack
-- `bun run docker:logs`: Tail logs from the Docker Compose stack
-- `bun run docker:down`: Stop the Docker Compose stack
+- `bun run dev`: Start dev server
+- `bun run build`: Build static site
+- `bun run check-types`: Check TypeScript types
+- `bun run dev:web`: Start only the web app
+- `bun run -F web check`: SvelteKit sync + svelte-check
+
+## Git Hooks and Formatting
+
+- Initialize hooks: `bun run prepare`

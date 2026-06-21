@@ -2,8 +2,8 @@
 
 ## Current State
 
-**Last Updated:** 2026-06-20
-**Active Feature:** feat-003 — Portfolio SvelteKit Rebuild (merged to master, developing on `febrian`)
+**Last Updated:** 2026-06-21
+**Active Feature:** feat-005 — Static Site Migration (completed on branch `febrian`)
 
 ## Status
 
@@ -14,43 +14,44 @@
 - [x] Svelte skills installed under `.agents/skills/`
 - [x] Cursor rules for Svelte MCP and best practices added
 - [x] Baseline verification passed (`init.ps1`)
-- [x] **Portfolio rebuild** on branch `feat/portfolio-svelte-rebuild` (worktree: `.worktrees/portfolio-svelte-rebuild`)
-  - OKLCH design tokens + ThemeToggle with View Transitions
-  - Home (staggered fly), Stack, Blog (oRPC + PostgreSQL + marked), Contact (form + DB), Error page
-  - DB: `posts` + `contacts` tables pushed; 3 blog posts seeded
-  - Dependencies: `@selemondev/svgl-svelte`, `lucide-svelte`, `marked`
-  - `apps/web/.env` updated locally with EasyPanel DATABASE_URL (not committed)
+- [x] Portfolio rebuild (feat-003): OKLCH design tokens, Home/Stack/Blog/Contact
+- [x] Home sectioned layout (feat-004)
+- [x] **Static site migration (feat-005)** — 2026-06-21
+  - `adapter-node` → `adapter-static` with prerendering (SSG)
+  - Blog: PostgreSQL + oRPC → mdsvex + `.md` files in `src/content/blog/`
+  - Contact: form action + DB insert → simple `mailto:` link
+  - Removed: `packages/api`, `packages/db`, `packages/env`, oRPC infra, Docker, `bts.jsonc`
+  - Dependencies cleaned: `@orpc/*`, `@tanstack/*`, `drizzle-orm`, `pg`, `marked`, `zod`, `dotenv` removed
 
 ### What's In Progress
 
-- [ ] Local development on branch `febrian`
+- [ ] Verification of static build (Phase 6)
 
 ### What's Next
 
-- Run `bun run dev` smoke test on all routes
+- Run `bun install` + `bun run -F web check` + `bun run build` to verify
 - Replace placeholder project/social URLs with real links
+- Deploy static output to CDN
 
 ## Blockers / Risks
 
-- `@selemondev/svgl-svelte` v2.15 uses `Svgl*Logo` export names (plan used older names; code updated)
-- `seed.ts` loads dotenv before dynamic import (required for Bun env validation)
-- 1 a11y warning: `href="#"` on Trio Motor link (placeholder)
+- mdsvex + SvelteKit 5 compatibility — needs `bun run -F web check` verification
+- Prerendering of `[slug]` route depends on `entries()` function working correctly
 
 ## Decisions Made
 
-- **svgl icon names**: Use `SvglNextjsLogo`, `SvglGitHubLogo`, etc. per v2.15 catalog
-- **$props typing**: `let { data }: PageProps = $props()` (Svelte 5 pattern, not `$props<PageProps>()`)
-- **web package**: Added `@febriannugroho/db` workspace dep for contact form action
-- **api package**: Added `drizzle-orm` dep for blog router queries
-- **Home layout refactor (2026-06-20)**: Sectioned layout (hero → projects → find me on → get in touch) deviates from original narrative spec; see `docs/decisions/2026-06-20-home-sectioned-layout.md`
+- **Static migration**: Convert from full-stack to 100% static SSG (user decision 2026-06-21)
+- **Blog**: mdsvex + `.md` files with frontmatter (user choice over TS data file)
+- **Contact**: Simple `mailto:` link (user choice over external form service)
+- **Monorepo**: Kept Turborepo structure, slimmed to `apps/web` + `packages/config` only
 
 ## Evidence of Completion
 
-- [x] `bun run check-types` — passed in worktree
-- [x] `bun run -F web check` — 0 errors, 1 a11y warning (`href="#"`)
-- [x] `bun run db:push` — posts + contacts tables
-- [x] `bun run -F @febriannugroho/db seed` — 3 posts inserted
+- [x] `bun install` — 6 packages removed, lockfile clean
+- [x] `bun run check-types` — 0 tasks (no type errors)
+- [x] `bun run -F web check` — 0 errors, 1 warning (pre-existing `href="#"`)
+- [x] `bun run build` — static output in `apps/web/build/` (7 HTML files)
 
 ## Notes for Next Session
 
-Work merged to `master`. Active dev branch: `febrian`. Ensure `apps/web/.env` has EasyPanel DATABASE_URL before DB operations.
+All backend code removed. Active dev branch: `febrian`. No `.env` file needed anymore. Static output in `apps/web/build/` after `bun run build`.

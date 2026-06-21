@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Agent harness for **febriannugroho** — a Better-T-Stack monorepo (SvelteKit 5, oRPC, Drizzle, PostgreSQL, Turborepo, Bun).
+Agent harness for **febriannugroho** — a static SvelteKit 5 monorepo (SvelteKit 5, TailwindCSS, mdsvex, Turborepo, Bun).
 
 ## Startup Workflow
 
@@ -19,10 +19,8 @@ If baseline verification fails, fix that before adding new scope.
 
 | Area | Path | Notes |
 |------|------|-------|
-| Web app (SvelteKit) | `apps/web/` | Routes, components, oRPC client |
-| API layer | `packages/api/` | oRPC routers, business logic |
-| Database | `packages/db/` | Drizzle schema, migrations |
-| Env config | `packages/env/` | Typed env vars (server/web) |
+| Web app (SvelteKit) | `apps/web/` | Routes, components, mdsvex blog |
+| Shared config | `packages/config/` | TypeScript base config |
 | Turborepo tasks | `turbo.json` | Task pipeline and caching |
 | Agent harness state | `docs/` | Feature tracker, progress log, handoff |
 
@@ -46,7 +44,26 @@ When creating or editing Svelte files under `apps/web/`:
 3. Run **`svelte-autofixer`** on changed code until clean
 4. Verify with `bun run -F web check`
 
-MCP is configured in `.cursor/mcp.json` and `.mcp.json` (`https://mcp.svelte.dev/mcp`).
+## MCP Configuration (Multi-IDE)
+
+Project MCP servers are configured across multiple IDEs:
+
+| IDE | Config File | Format |
+|-----|-------------|--------|
+| Cursor | `.cursor/mcp.json` | JSON |
+| Devin | `.devin/config.json` | JSON |
+| Zed | `.zed/settings.json` | JSON |
+| Claude / Pi / Generic | `.mcp.json` | JSON |
+
+**Servers configured:**
+
+| Server | Purpose |
+|--------|---------|
+| `better-t-stack` (`bunx create-better-t-stack@latest mcp`) | Better T Stack utilities |
+| `context7` (`npx -y @upstash/context7-mcp`) | Library docs lookup |
+| `svelte` (`https://mcp.svelte.dev/mcp`) | Svelte 5 documentation & guidance |
+
+> **Windsurf/Devin:** Global MCP config sudah di-setup di `%USERPROFILE%\.codeium\windsurf\mcp_config.json`. Project-level cukup lewat `.devin/config.json`.
 
 ## Working Rules
 
@@ -89,8 +106,7 @@ Required checks:
 
 Optional before deploy:
 
-- `bun run build`
-- `bun run docker:build`
+- `bun run build` — generates static output in `apps/web/build/`
 
 ## End of Session
 
