@@ -1,0 +1,36 @@
+---
+description: Svelte 5 runes-mode best practices for components and modules in this project
+globs: apps/web/**/*.{svelte,svelte.ts,svelte.js}
+alwaysApply: false
+---
+
+# Svelte 5 Best Practices (febriannugroho)
+
+Load `.agents/skills/svelte-core-bestpractices/SKILL.md` for full guidance. Key invariants:
+
+## Reactivity
+
+- Use `$state` only for values that drive UI updates; prefer `$state.raw` for large reassigned objects (e.g. API responses)
+- Prefer `$derived` over `$effect` for computed values
+- Avoid updating state inside `$effect` — use event handlers, `{@attach}`, or `$derived` instead
+
+## Components
+
+- Use `$props()` — never `export let`
+- Use `onclick={...}` — never `on:click`
+- Use `{#snippet}` / `{@render}` — never `<slot>`
+- Use keyed `{#each}` blocks with stable unique keys (not index)
+- Use `createContext` for shared state (SSR-safe)
+
+## Validation
+
+Before finishing any Svelte edit:
+
+1. Run Svelte MCP `svelte-autofixer` on changed files
+2. Run `bun run -F web check` from repo root
+
+## Project paths
+
+- Components: `apps/web/src/components/`
+- Routes: `apps/web/src/routes/`
+- oRPC client: `apps/web/src/lib/orpc.ts`

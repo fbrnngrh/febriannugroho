@@ -1,0 +1,35 @@
+{
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Harness Bootstrap",
+      "description": "Agent harness initialized: AGENTS.md, verification scripts, Svelte MCP/rules/skills wired for this repo",
+      "dependencies": [],
+      "status": "done",
+      "evidence": "AGENTS.md, init.sh, init.ps1, docs/, .cursor/rules/, .agents/skills/svelte-* created 2026-06-20"
+    },
+    {
+      "id": "feat-002",
+      "name": "Baseline Verification",
+      "description": "Confirm bun install, check-types, and web svelte-check pass from a clean checkout",
+      "dependencies": ["feat-001"],
+      "status": "done",
+      "evidence": "init.ps1 passed 2026-06-20: bun install OK, check-types OK (0 tasks), web svelte-check 0 errors"
+    },
+    {
+      "id": "feat-003",
+      "name": "Portfolio SvelteKit Rebuild",
+      "description": "Rebuild portfolio-minimalist in SvelteKit 5 with OKLCH design system, Home/Stack/Blog/Contact pages, PostgreSQL backends for blog and contact",
+      "dependencies": ["feat-002"],
+      "status": "done",
+      "evidence": "Branch feat/portfolio-svelte-rebuild (12 commits). bun run -F web check: 0 errors. db:push + seed: 3 posts. Worktree: .worktrees/portfolio-svelte-rebuild"
+    {
+      "id": "feat-004",
+      "name": "Home Sectioned Layout",
+      "description": "Restructure home page into hero + labeled sections (Projects, Find me on, Get in touch) for better visual proportion; deviates from original narrative spec",
+      "dependencies": ["feat-003"],
+      "status": "done",
+      "evidence": "docs/decisions/2026-06-20-home-sectioned-layout.md; +page.svelte restructured 2026-06-20"
+    }
+  ]
+}
