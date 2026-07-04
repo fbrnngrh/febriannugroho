@@ -10,28 +10,13 @@
     SvglXformerlyTwitterLogo,
   } from "@selemondev/svgl-svelte";
   import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
-  import ProjectCard from "$lib/components/ProjectCard.svelte";
 
-  const projects = [
-    {
-      title: "Project One",
-      description: "A brief description of the first project",
-      href: "#",
-    },
-    {
-      title: "Project Two",
-      description: "A brief description of the second project",
-      href: "#",
-    },
-  ];
-
-  const homeSections = [
+  const sections = [
     "intro",
     "what-i-do",
     "work",
     "tech",
     "social",
-    "projects",
     "cta",
   ];
 
@@ -65,12 +50,12 @@
   />
 </svelte:head>
 
-<div class="space-y-12">
-  {#each homeSections as section, i (section)}
+<div class="space-y-6 sm:space-y-8">
+  {#each sections as section, i (section)}
     {@const delay = i * 100}
     {#if section === "intro"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
+        <p class="text-2xl leading-relaxed">
           Hi, my name is
           <span class="font-semibold">Febrian Bayu Nugroho</span>
           <ProfilePhoto src="/images/profile-photo-2.webp" />
@@ -78,52 +63,47 @@
       </section>
     {:else if section === "what-i-do"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
+        <p class="text-2xl leading-relaxed">
           I build <span class="font-semibold">web applications</span>
           and
-          <span class="font-semibold">SaaS products</span>.
+          <span class="font-semibold">SaaS products</span>
+          for modern teams.
         </p>
       </section>
     {:else if section === "work"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
-          I'm a Mid Software Engineer at
+        <p class="text-2xl leading-relaxed">
+          Currently a Mid Software Engineer at
           <a
-            href="#"
+            href="https://triomotor.co.id"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 align-middle"
+            class="company-link inline-flex items-center gap-1 align-middle"
           >
             <img
               src="/images/trio-motor-logo.jpeg"
               alt="Trio Motor logo"
-              class="inline-block h-8 w-8 rounded-lg border border-border object-cover shadow-sm"
-              style="transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              class="inline-block h-8 w-8 rounded-lg border border-border object-cover shadow-sm transition-transform duration-300"
               width="32"
               height="32"
             />
           </a>
-          <style>
-            a:hover img {
-              transform: scale(1.1) rotate(3deg);
-            }
-          </style>
         </p>
       </section>
     {:else if section === "tech"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
-          <span class="mr-2">I work with</span>
-          <span class="group inline-flex items-center align-middle">
-            {#each techIcons as icon, j}
+        <p class="text-2xl leading-relaxed">
+          I'm a software engineer focused on full-stack development with
+          <span class="icon-row group inline-flex items-center align-middle">
+            {#each techIcons as icon, j (icon.label)}
               <span
-                class="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300 group-hover:ml-1 {j > 0 ? '-ml-2' : ''}"
+                class="icon-pill inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300"
+                class:-ml-2={j > 0}
               >
                 <icon.component
                   width={36}
                   height={36}
-                  class="transition-transform duration-300 group-hover:rotate-0 dark:invert"
-                  style="transform: rotate(-6deg)"
+                  class="tilted-icon {icon.label === 'Next.js' ? 'dark:invert' : ''}"
                   aria-label={icon.label}
                 />
               </span>
@@ -133,49 +113,32 @@
       </section>
     {:else if section === "social"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
-          <span class="mr-2">Find me on</span>
-          <span class="group inline-flex items-center align-middle">
-            {#each socialIcons as icon, j}
-              <a
-                href={icon.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300 group-hover:ml-1 {j > 0 ? '-ml-2' : ''}"
-                aria-label={icon.label}
-              >
-                <icon.component
-                  width={36}
-                  height={36}
-                  class="transition-transform duration-300 group-hover:rotate-0 dark:invert"
-                  style="transform: rotate(-6deg)"
-                />
-              </a>
-            {/each}
-          </span>
+        <p class="text-2xl leading-relaxed">
+          I also post regularly on these platforms
         </p>
-      </section>
-    {:else if section === "projects"}
-      <section in:fly={{ y: 20, duration: 400, delay }}>
-        <div class="space-y-4">
-          <p class="text-2xl leading-8">
-            <span class="font-semibold">Projects</span>
-          </p>
-          <div class="flex flex-row flex-wrap gap-3">
-            {#each projects as project}
-              <ProjectCard
-                title={project.title}
-                description={project.description}
-                href={project.href}
+        <div class="icon-row group mt-3 inline-flex items-center">
+          {#each socialIcons as icon, j (icon.label)}
+            <a
+              href={icon.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="icon-pill inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300"
+              class:-ml-2={j > 0}
+              aria-label={icon.label}
+            >
+              <icon.component
+                width={36}
+                height={36}
+                class="tilted-icon {['GitHub', 'X'].includes(icon.label) ? 'dark:invert' : ''}"
               />
-            {/each}
-          </div>
+            </a>
+          {/each}
         </div>
       </section>
     {:else if section === "cta"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
-        <p class="text-2xl leading-8">
-          Want to see what I use?
+        <p class="text-2xl leading-relaxed">
+          Curious about my tech stack?
           <a href="/stack" class="text-accent hover:underline">Click here.</a>
         </p>
       </section>
@@ -183,24 +146,40 @@
   {/each}
 
   <!-- Separator -->
-  <hr class="mt-20 border-dashed border-border" />
+  <hr class="mt-8 sm:mt-12 border-dashed border-border" />
 
   <!-- Footer links -->
   <section class="space-y-1 text-sm">
     <p>
-      <a href="/blog" class="text-muted hover:text-fg transition-colors">
-        Read my blog →
-      </a>
+      Want to read my writing?
+      <a href="/blog" class="text-accent hover:underline">Click here.</a>
     </p>
     <p>
-      <a href="/contact" class="text-muted hover:text-fg transition-colors">
-        Get in touch →
-      </a>
+      Want to say hi?
+      <a href="/contact" class="text-accent hover:underline">Click here.</a>
     </p>
   </section>
 </div>
 
 <style>
+  /* ponytail: icons tilt -6deg, go upright on group hover */
+  .icon-row :global(.tilted-icon) {
+    transform: rotate(-6deg);
+    transition: transform 0.3s ease;
+  }
+
+  .icon-row:hover :global(.tilted-icon) {
+    transform: rotate(0deg);
+  }
+
+  .icon-row:hover .icon-pill {
+    margin-left: 4px;
+  }
+
+  .company-link:hover img {
+    transform: scale(1.1) rotate(3deg);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     section {
       animation: none !important;

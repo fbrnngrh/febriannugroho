@@ -39,6 +39,30 @@
       "dependencies": ["feat-004"],
       "status": "done",
       "evidence": "adapter-static + mdsvex installed; 3 blog posts migrated to src/content/blog/*.md; contact form replaced with mailto:; packages/api, packages/db, packages/env deleted; hooks.server.ts, orpc.*, routes/rpc/ removed; Docker files + bts.jsonc removed; README/AGENTS.md updated 2026-06-21"
+    },
+    {
+      "id": "feat-006",
+      "name": "Home Page Fit-to-Screen",
+      "description": "Adjust layout wrappers and spacing on home page so it centers vertically and fits standard viewports without scrolling.",
+      "dependencies": ["feat-004"],
+      "status": "done",
+      "evidence": "+layout.svelte page check & conditionally centering; +page.svelte tighter section gaps; build passed 2026-07-04"
+    },
+    {
+      "id": "feat-007",
+      "name": "Stack Page Redesign",
+      "description": "Adjust stack page layout to use profile photo, custom tool items with elbow connector style, and wider page container.",
+      "dependencies": ["feat-003"],
+      "status": "done",
+      "evidence": "+layout.svelte page check & wider max-w-2xl width; stack/+page.svelte items redesign with Svelte (top 3) and without TanStack; build passed 2026-07-04"
+    },
+    {
+      "id": "feat-008",
+      "name": "Dark Mode Icon Visibility",
+      "description": "Configure Tailwind v4 selector-based dark mode custom variant in app.css, and dynamically apply dark:invert only to monochrome icons on homepage and stack page.",
+      "dependencies": ["feat-006", "feat-007"],
+      "status": "done",
+      "evidence": "app.css custom-variant; +page.svelte & stack/+page.svelte dynamic dark:invert classes; build passed 2026-07-04"
     }
   ]
 }

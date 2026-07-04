@@ -14,7 +14,7 @@
     height="48"
   />
   <span
-    class="pointer-events-none absolute -right-1 -top-1 text-lg opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-safe:group-hover:animate-[wave_0.5s_ease-in-out_infinite]"
+    class="wave-emoji pointer-events-none absolute -right-3 -top-3 text-lg opacity-0 transition-opacity duration-200 group-hover:opacity-100"
     aria-hidden="true"
   >
     👋
@@ -22,16 +22,35 @@
 </div>
 
 <style>
+  .wave-emoji {
+    transform-origin: 70% 70%;
+  }
+
+  :global(.group:hover) .wave-emoji {
+    animation: wave 0.4s ease-in-out 2;
+  }
+
   @keyframes wave {
-    0%,
-    100% {
+    0% {
       transform: rotate(0deg);
     }
-    25% {
-      transform: rotate(20deg);
+    15% {
+      transform: rotate(14deg);
+    }
+    30% {
+      transform: rotate(-8deg);
+    }
+    45% {
+      transform: rotate(14deg);
+    }
+    60% {
+      transform: rotate(-4deg);
     }
     75% {
-      transform: rotate(-20deg);
+      transform: rotate(10deg);
+    }
+    100% {
+      transform: rotate(0deg);
     }
   }
 </style>
