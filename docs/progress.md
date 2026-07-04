@@ -43,6 +43,8 @@
   - Dynamically applied `dark:invert` only to monochrome icons on the homepage (Next.js, GitHub, X) and stack page (Cursor, Warp, Notion, Next.js, Prisma, Vercel).
   - Ensured colored/branded icons (React, TypeScript, Tailwind CSS, PostgreSQL, Claude, Brave, Figma, Bun) retain their original brand colors in both themes.
   - Verified visibility and color retention using the browser subagent in dark mode.
+- [x] **Favicon Customization** — 2026-07-04
+  - Changed the default favicon in `app.html` to target the user's profile photo (`/images/profile-photo-2.webp`).
 
 ### What's In Progress
 
