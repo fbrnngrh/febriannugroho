@@ -7,6 +7,8 @@ type PostMetadata = {
   date: string;
   readingTime: string;
   slug: string;
+  tags: string[];
+  coverImage?: string;
 };
 
 type PostModule = {

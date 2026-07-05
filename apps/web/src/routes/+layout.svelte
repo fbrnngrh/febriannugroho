@@ -7,7 +7,8 @@
 
   let isHome = $derived(page.url.pathname === "/");
   let isStack = $derived(page.url.pathname === "/stack");
-  let maxWidth = $derived(isStack ? "max-w-2xl" : "max-w-xl");
+  let isBlog = $derived(page.url.pathname.startsWith("/blog"));
+  let maxWidth = $derived(isStack || isBlog ? "max-w-2xl" : "max-w-xl");
 </script>
 
 <main class="mx-auto {maxWidth} px-6 {isHome 

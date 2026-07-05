@@ -63,6 +63,30 @@
       "dependencies": ["feat-006", "feat-007"],
       "status": "done",
       "evidence": "app.css custom-variant; +page.svelte & stack/+page.svelte dynamic dark:invert classes; build passed 2026-07-04"
+    },
+    {
+      "id": "feat-009",
+      "name": "Blog Section Revamp & Typography Optimization",
+      "description": "Redesign blog landing page with instant search, tag filter pills, tag counts, card layouts, reading progress bar, dynamic copy code buttons for markdown blocks, and optimized typography.",
+      "dependencies": ["feat-005"],
+      "status": "done",
+      "evidence": "blog/+page.svelte revamped with search/tags; BlogListItem.svelte card layout; blog/[slug]/+page.svelte with reading progress, copy code dynamic effect; build passed 2026-07-05"
+    },
+    {
+      "id": "feat-010",
+      "name": "Contact Page Revamp & Interactive Composer",
+      "description": "Revamp the contact page to use a clean centered single-column layout. Implemented live-ticking clock based on Banjarmasin GMT+8 WITA (Asia/Makassar), direct email copy button with success tooltip, and editorial bottom-bordered input form fields.",
+      "dependencies": ["feat-005"],
+      "status": "done",
+      "evidence": "contact/+page.svelte revamped with narrow layout, WITA clock, copy button, bottom-bordered inputs, and text socials; build passed 2026-07-05"
+    },
+    {
+      "id": "feat-011",
+      "name": "Blog Content Improvement & Hero Cover Images",
+      "description": "Rewrote the three placeholder blog posts into detailed, production-grade technical guides. Integrated coverImage metadata support in Svelte templates and dynamically loaded unique AI-generated cover images for all three articles.",
+      "dependencies": ["feat-009"],
+      "status": "done",
+      "evidence": "a-practical-guide-to-react-19-actions.md, building-a-saas-with-nextjs-16.md, and mastering-tailwind-css-v4-with-oklch.md expanded; slug/+page.svelte updated; static cover images generated; build passed 2026-07-05"
     }
   ]
 }

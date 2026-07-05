@@ -6,6 +6,8 @@ type PostMetadata = {
   date: string;
   readingTime: string;
   slug: string;
+  tags: string[];
+  coverImage?: string;
 };
 
 const posts = import.meta.glob("/src/content/blog/*.md", {

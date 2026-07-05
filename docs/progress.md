@@ -2,13 +2,36 @@
 
 ## Current State
 
-**Last Updated:** 2026-06-21
-**Active Feature:** feat-005 — Static Site Migration (completed on branch `febrian`)
+**Last Updated:** 2026-07-05
+**Active Feature:** feat-011 — Blog Content Improvement & Hero Cover Images (completed on branch `febrian`)
 
 ## Status
 
 ### What's Done
 
+- [x] **Blog Content Improvement & Hero Cover Images (feat-011)** — 2026-07-05
+  - Rewrote the three short placeholders into high-quality, long-form technical guides (React 19 Actions, Next.js SaaS architecture, and Tailwind CSS v4 OKLCH setup).
+  - Configured cover image metadata support inside Svelte load types and templates.
+  - Generated customized AI cover images for each post and saved them into the project static assets directory (`apps/web/static/images/blog/`).
+  - Added hero banner rendering support in `blog/[slug]/+page.svelte`.
+  - Confirmed compiler type-checks, Svelte checks, and static exports pass successfully.
+- [x] **Contact Page Revamp & Interactive Composer (feat-010)** — 2026-07-05
+  - Reverted layout width (`+layout.svelte`) to the centered `max-w-xl` default layout for a focused reading rhythm.
+  - Implemented a live-ticking timezone clock configured for Banjarmasin, South Kalimantan (`Asia/Makassar` WITA, GMT+8).
+  - Integrated status highlights (work availability pulse badge, location description, clock) in a clean, unified title metadata line.
+  - Designed an editorial-style message composer form using bottom-bordered text inputs, select elements, and textareas (`border-b border-border focus:border-accent bg-transparent rounded-none`).
+  - Simplified direct email connects with a copy-to-clipboard button that shows checked status feedback.
+  - Replaced heavy buttons and pills with text-based links separated by slashes (`GitHub / LinkedIn / X`).
+  - Completed type checking and static production build tests successfully.
+- [x] **Blog Section Revamp & Typography Optimization (feat-009)** — 2026-07-05
+  - Widened the blog pages layout width (`+layout.svelte`) to `max-w-2xl` for optimal reading proportion and spacious code block containers.
+  - Revamped `blog/+page.svelte` to support instant text searches across titles and descriptions.
+  - Implemented interactive tag category pills with dynamic counts indicating how many posts belong to each category.
+  - Redesigned `BlogListItem.svelte` using an elegant, fully responsive box card layout with metadata tags, reading times, descriptions, and arrow hover micro-animations.
+  - Created a scroll-based reading progress bar indicator for individual posts in `blog/[slug]/+page.svelte`.
+  - Built a client-side Svelte 5 `$effect` hook that dynamically injects zero-dependency copy buttons with success status alerts to all mdsvex fenced code snippets.
+  - Enhanced markdown body styling (`.prose-custom`) including blockquotes, headers, spacing, font weights, and list marker styles.
+  - Completed type checking (`bun run check-types`), Svelte code checking (`bun run -F web check`), and static production build checks (`bun run build`).
 - [x] Agent harness initialized (AGENTS.md, docs/, init scripts)
 - [x] Svelte MCP configured in `.cursor/mcp.json` and `.mcp.json`
 - [x] Svelte skills installed under `.agents/skills/`
