@@ -6,15 +6,13 @@ WORKDIR /app
 COPY package.json bun.lock turbo.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
-RUN bun install --frozen-lockfile
+RUN HUSKY=0 bun install --frozen-lockfile
 
 FROM oven/bun:1.3.14-alpine AS builder
 WORKDIR /app
 
 ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
+COPY --from=deps /app ./
 COPY . .
 
 # Optional build-time values. Prefer refreshing the cached JSON outside Docker

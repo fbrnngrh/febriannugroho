@@ -14,7 +14,8 @@
   - Added `Dockerfile`, `nginx.conf`, and `.dockerignore`.
   - Documented Easypanel repo-root build path, port `80`, health check, and safe GitHub contribution cache handling in `docs/deployment.md`.
   - Updated root Turborepo scripts to use explicit `turbo run` form.
-  - Verified project checks and static build pass; Docker image smoke test is pending because Docker CLI is unavailable in this environment.
+  - Fixed Docker build failure from copying a non-existent `packages/config/node_modules` directory; builder now copies the full dependency stage from `/app` and disables Husky during Docker install.
+  - Verified project checks pass; Docker image smoke test is pending because Docker CLI is unavailable in this environment.
 
 - [x] **GitHub Contribution Calendar Integration (feat-012)** — 2026-07-06
   - Wrote a secure GraphQL data-fetching Bun script (`scripts/fetch-github-contributions.ts`) that downloads both rolling last year and individual calendar years (2021-2026) in a loop via GraphQL.
