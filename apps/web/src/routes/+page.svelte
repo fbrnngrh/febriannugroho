@@ -139,7 +139,7 @@
       <section in:fly={{ y: 20, duration: 400, delay }}>
         <p class="text-2xl leading-relaxed">
           Curious about my tech stack?
-          <a href="/stack" class="text-accent hover:underline">Click here.</a>
+          <a href="/stack" class="text-accent hover:underline">Explore the tools I use.</a>
         </p>
       </section>
     {/if}
@@ -152,11 +152,11 @@
   <section class="space-y-1 text-sm">
     <p>
       Want to read my writing?
-      <a href="/blog" class="text-accent hover:underline">Click here.</a>
+      <a href="/blog" class="text-accent hover:underline">Browse through my articles.</a>
     </p>
     <p>
       Want to say hi?
-      <a href="/contact" class="text-accent hover:underline">Click here.</a>
+      <a href="/contact" class="text-accent hover:underline">Let's get in touch.</a>
     </p>
   </section>
 </div>
