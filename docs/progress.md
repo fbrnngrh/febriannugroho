@@ -3,12 +3,21 @@
 ## Current State
 
 **Last Updated:** 2026-07-06
-**Active Feature:** Bug Fix — Profile Photo Hydration Mismatch & Flicker (completed)
+**Active Feature:** Social Media URLs & Threads Transition (completed)
 
 ## Status
 
 ### What's Done
 
+- [x] **Social Media Links Update & Threads Transition** — 2026-07-06
+  - Replaced all placeholder/old social media URLs with the user's correct profiles:
+    - GitHub: `https://github.com/fbrnngrh`
+    - LinkedIn: `https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/`
+    - Instagram: `https://www.instagram.com/febriannugroho.dev`
+    - Threads: `https://www.threads.net/@febriannugroho.dev`
+  - Replaced the "X" social icon on the homepage with the "Threads" icon using `SvglThreadsLogo` from `@selemondev/svgl-svelte`.
+  - Updated the contact page social links section to list the correct GitHub, LinkedIn, Instagram, and Threads links, removing the old X reference.
+  - Verified compilation and static HTML generation pass cleanly.
 - [x] **Profile Photo Hydration Mismatch & Flicker Fix** — 2026-07-06
   - Fixed a Svelte 5 hydration mismatch and layout flickering issue with the `<ProfilePhoto>` component.
   - Root Cause: The profile photo component's container was using a block-level `<div>` element but was nested inside a `<p class="text-2xl leading-relaxed">` tag on the landing page. In HTML, a `<div>` inside a `<p>` causes the browser to automatically close the `<p>` element, creating a DOM hierarchy mismatch between the SSR output and client-side hydration.

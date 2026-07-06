@@ -7,7 +7,7 @@
     SvglGitHubLogo,
     SvglInstagramLogo,
     SvglLinkedInLogo,
-    SvglXformerlyTwitterLogo,
+    SvglThreadsLogo,
   } from "@selemondev/svgl-svelte";
   import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
 
@@ -27,18 +27,18 @@
   ];
 
   const socialIcons = [
-    { component: SvglGitHubLogo, label: "GitHub", href: "https://github.com/" },
+    { component: SvglGitHubLogo, label: "GitHub", href: "https://github.com/fbrnngrh" },
     {
       component: SvglInstagramLogo,
       label: "Instagram",
-      href: "https://instagram.com/",
+      href: "https://www.instagram.com/febriannugroho.dev",
     },
     {
       component: SvglLinkedInLogo,
       label: "LinkedIn",
-      href: "https://linkedin.com/in/",
+      href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/",
     },
-    { component: SvglXformerlyTwitterLogo, label: "X", href: "https://x.com/" },
+    { component: SvglThreadsLogo, label: "Threads", href: "https://www.threads.net/@febriannugroho.dev" },
   ];
 </script>
 
@@ -129,7 +129,7 @@
               <icon.component
                 width={36}
                 height={36}
-                class="tilted-icon {['GitHub', 'X'].includes(icon.label) ? 'dark:invert' : ''}"
+                class="tilted-icon {['GitHub', 'Threads'].includes(icon.label) ? 'dark:invert' : ''}"
               />
             </a>
           {/each}

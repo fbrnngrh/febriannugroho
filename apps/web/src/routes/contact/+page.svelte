@@ -257,7 +257,7 @@
       </a>
       <span class="text-neutral-300 dark:text-neutral-700 font-normal">/</span>
       <a 
-        href="https://linkedin.com/in/fbrnngrh" 
+        href="https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/" 
         target="_blank" 
         rel="noopener noreferrer" 
         class="font-medium hover:text-fg transition-colors hover:underline"
@@ -266,12 +266,21 @@
       </a>
       <span class="text-neutral-300 dark:text-neutral-700 font-normal">/</span>
       <a 
-        href="https://x.com/fbrnngrh" 
+        href="https://www.instagram.com/febriannugroho.dev" 
         target="_blank" 
         rel="noopener noreferrer" 
         class="font-medium hover:text-fg transition-colors hover:underline"
       >
-        X
+        Instagram
+      </a>
+      <span class="text-neutral-300 dark:text-neutral-700 font-normal">/</span>
+      <a 
+        href="https://www.threads.net/@febriannugroho.dev" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="font-medium hover:text-fg transition-colors hover:underline"
+      >
+        Threads
       </a>
     </div>
   </div>
