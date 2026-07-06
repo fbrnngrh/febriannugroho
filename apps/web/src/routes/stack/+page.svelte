@@ -26,6 +26,7 @@
     SvglNotionLogo,
   } from "@selemondev/svgl-svelte";
   import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
+  import GitHubContributionCalendar from "$lib/components/GitHubContributionCalendar.svelte";
 
   interface StackItem {
     icon: any;
@@ -225,9 +226,30 @@
     Back to home
   </a>
 
-  <!-- Profile Photo -->
-  <div>
-    <ProfilePhoto src="/images/profile-photo-2.webp" />
+  <!-- Profile Header / Bio & GitHub Graph Card -->
+  <div class="rounded-2xl border border-border/80 bg-secondary/15 p-5 md:p-6 space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3.5">
+        <ProfilePhoto src="/images/profile-photo-2.webp" />
+        <div>
+          <h1 class="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            Febrian Bayu Nugroho
+          </h1>
+          <p class="text-[11px] text-muted">Software Engineer</p>
+        </div>
+      </div>
+      
+      <div class="self-start sm:self-auto">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"></span>
+          Active on GitHub
+        </span>
+      </div>
+    </div>
+
+    <div class="border-t border-border/40 pt-5">
+      <GitHubContributionCalendar />
+    </div>
   </div>
 
   <!-- Heading -->

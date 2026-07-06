@@ -10,6 +10,21 @@ A 100% static personal portfolio built with SvelteKit 5, TailwindCSS, and mdsvex
 - **Turborepo** — Monorepo build system
 - **Husky** — Git hooks for code quality
 
+## GitHub Contribution Calendar
+
+This portfolio integrates a GitHub Contribution Calendar fetched securely at build time via the GitHub GraphQL API.
+
+To configure the contribution data:
+1. Create a `.env` file in `apps/web/.env` (if it does not exist) containing:
+   ```env
+   GITHUB_TOKEN=your_personal_access_token
+   GITHUB_USERNAME=your_github_username
+   ```
+2. Build or fetch data using:
+   - Dev/fetch: `bun run -F web fetch:github`
+   - During `bun run build`, it will automatically run before SvelteKit generates the site.
+3. If no `GITHUB_TOKEN` is provided, the build script will automatically fall back to the existing cached JSON file (`apps/web/src/lib/data/github-contributions.json`) to prevent build failures.
+
 ## Getting Started
 
 ```bash

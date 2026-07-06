@@ -87,6 +87,14 @@
       "dependencies": ["feat-009"],
       "status": "done",
       "evidence": "a-practical-guide-to-react-19-actions.md, building-a-saas-with-nextjs-16.md, and mastering-tailwind-css-v4-with-oklch.md expanded; slug/+page.svelte updated; static cover images generated; build passed 2026-07-05"
+    },
+    {
+      "id": "feat-012",
+      "name": "GitHub Contribution Calendar Integration",
+      "description": "Integrate GitHub Contribution Graph/Calendar fetched securely at build time via GraphQL and cached locally, rendered on the Stack page via a custom Svelte 5 component with OKLCH theme-matching variables.",
+      "dependencies": ["feat-007"],
+      "status": "done",
+      "evidence": "scripts/fetch-github-contributions.ts; github-contributions.json default cache; GitHubContributionCalendar.svelte component; stack/+page.svelte modified with profile dashboard card; build passed 2026-07-06"
     }
   ]
 }

@@ -3,12 +3,25 @@
 ## Current State
 
 **Last Updated:** 2026-07-06
-**Active Feature:** Social Media URLs & Threads Transition (completed)
+**Active Feature:** GitHub Contribution Calendar Integration (completed)
 
 ## Status
 
 ### What's Done
 
+- [x] **GitHub Contribution Calendar Integration (feat-012)** — 2026-07-06
+  - Wrote a secure GraphQL data-fetching Bun script (`scripts/fetch-github-contributions.ts`) that downloads both rolling last year and individual calendar years (2021-2026) in a loop via GraphQL.
+  - Implemented environment loading and a fallback strategy so that the build system uses the cached JSON file if `GITHUB_TOKEN` is missing, preventing build failures.
+  - Configured the script to cache results in `apps/web/src/lib/data/github-contributions.json`.
+  - Added a custom Svelte 5 component (`GitHubContributionCalendar.svelte`) using runes (`$props()`, `$derived`, `$state`, `$effect`) for reactive state and actions.
+  - Styled the calendar with custom OKLCH-based theme variables mapped to the portfolio's accent blue color for light and dark modes.
+  - Implemented an automatic scroll-to-right behavior using Svelte 5 `$effect` on load and year switch, ensuring the current/newest month is shown immediately.
+  - Repositioned the Year Selector as a horizontal row of tabs in the top header, giving 100% of the horizontal space to the calendar grid.
+  - Synced month labels scrolling by placing them inside the scroll container, avoiding any alignment drift when scrolling.
+  - Math-aligned day labels (Mon, Wed, Fri) row-by-row with the grid by using a matching `88px` height and `18px` top margin.
+  - Integrated the calendar into the `/stack` page inside a revamped profile dashboard card.
+  - Configured project scripts (`fetch:github`) and automated fetching as part of the build pipeline in `apps/web/package.json`.
+  - Documented setup instructions and build fallbacks in `README.md`.
 - [x] **Social Media Links Update & Threads Transition** — 2026-07-06
   - Replaced all placeholder/old social media URLs with the user's correct profiles:
     - GitHub: `https://github.com/fbrnngrh`
