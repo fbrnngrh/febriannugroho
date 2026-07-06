@@ -5,7 +5,7 @@
   }>();
 </script>
 
-<div class="group relative inline-block align-middle">
+<span class="group relative inline-block align-middle">
   <img
     {src}
     {alt}
@@ -19,7 +19,7 @@
   >
     👋
   </span>
-</div>
+</span>
 
 <style>
   .wave-emoji {

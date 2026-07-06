@@ -2,13 +2,18 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-05
-**Active Feature:** feat-011 — Blog Content Improvement & Hero Cover Images (completed on branch `febrian`)
+**Last Updated:** 2026-07-06
+**Active Feature:** Bug Fix — Profile Photo Hydration Mismatch & Flicker (completed)
 
 ## Status
 
 ### What's Done
 
+- [x] **Profile Photo Hydration Mismatch & Flicker Fix** — 2026-07-06
+  - Fixed a Svelte 5 hydration mismatch and layout flickering issue with the `<ProfilePhoto>` component.
+  - Root Cause: The profile photo component's container was using a block-level `<div>` element but was nested inside a `<p class="text-2xl leading-relaxed">` tag on the landing page. In HTML, a `<div>` inside a `<p>` causes the browser to automatically close the `<p>` element, creating a DOM hierarchy mismatch between the SSR output and client-side hydration.
+  - Resolution: Changed the root element of `ProfilePhoto.svelte` from a `<div>` to a inline-block `<span>` (which is valid inside `<p>`).
+  - Verified that this completely eliminates the Svelte hydration mismatch console warnings and prevents layout flickering or shifting on page refresh.
 - [x] **Blog Content Improvement & Hero Cover Images (feat-011)** — 2026-07-05
   - Rewrote the three short placeholders into high-quality, long-form technical guides (React 19 Actions, Next.js SaaS architecture, and Tailwind CSS v4 OKLCH setup).
   - Configured cover image metadata support inside Svelte load types and templates.
