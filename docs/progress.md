@@ -3,11 +3,18 @@
 ## Current State
 
 **Last Updated:** 2026-07-06
-**Active Feature:** GitHub Contribution Calendar Integration (completed)
+**Active Feature:** Easypanel GitHub Dockerfile Deployment (in progress)
 
 ## Status
 
 ### What's Done
+
+- [ ] **Easypanel GitHub Dockerfile Deployment (feat-013)** — 2026-07-06
+  - Researched lightweight Easypanel GitHub-source deployment approach for a static SvelteKit monorepo: root Dockerfile + multi-stage Bun build + Nginx runtime.
+  - Added `Dockerfile`, `nginx.conf`, and `.dockerignore`.
+  - Documented Easypanel repo-root build path, port `80`, health check, and safe GitHub contribution cache handling in `docs/deployment.md`.
+  - Updated root Turborepo scripts to use explicit `turbo run` form.
+  - Verified project checks and static build pass; Docker image smoke test is pending because Docker CLI is unavailable in this environment.
 
 - [x] **GitHub Contribution Calendar Integration (feat-012)** — 2026-07-06
   - Wrote a secure GraphQL data-fetching Bun script (`scripts/fetch-github-contributions.ts`) that downloads both rolling last year and individual calendar years (2021-2026) in a loop via GraphQL.
@@ -98,11 +105,11 @@
 
 ### What's In Progress
 
-- [ ] Verification of static build (Phase 6)
+- [ ] Verify Easypanel GitHub Dockerfile deployment (feat-013)
 
 ### What's Next
 
-- Run `bun install` + `bun run -F web check` + `bun run build` to verify
+- Run `docker build -t febriannugroho-portfolio .` and a container smoke test in an environment with Docker installed
 - Replace placeholder project/social URLs with real links
 - Deploy static output to CDN
 

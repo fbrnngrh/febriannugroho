@@ -95,6 +95,14 @@
       "dependencies": ["feat-007"],
       "status": "done",
       "evidence": "scripts/fetch-github-contributions.ts; github-contributions.json default cache; GitHubContributionCalendar.svelte component; stack/+page.svelte modified with profile dashboard card; build passed 2026-07-06"
+    },
+    {
+      "id": "feat-013",
+      "name": "Easypanel GitHub Dockerfile Deployment",
+      "description": "Add a lightweight Easypanel GitHub-source deployment path using a root Dockerfile, multi-stage Bun build, and Nginx static runtime.",
+      "dependencies": ["feat-005", "feat-012"],
+      "status": "in_progress",
+      "evidence": "Dockerfile, nginx.conf, .dockerignore, docs/deployment.md added 2026-07-06; Easypanel build path documented as repo root; Docker unavailable locally, so image smoke test is pending"
     }
   ]
 }
