@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { ArrowLeft } from "lucide-svelte";
+  import { mount, unmount, tick } from "svelte";
+  import BackLink from "$lib/components/BackLink.svelte";
+  import CopyCodeButton from "$lib/components/CopyCodeButton.svelte";
+  import { inview } from "$lib/actions/inview";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
   const PostComponent = $derived(data.PostComponent);
 
-  // Reading progress bar logic
   let scrollProgress = $state(0);
   function handleScroll() {
     const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -14,53 +16,47 @@
     }
   }
 
-  // Client-side effect to dynamically add "Copy Code" buttons to all <pre> code blocks
   $effect(() => {
-    const preBlocks = document.querySelectorAll('.prose-custom pre');
-    preBlocks.forEach((pre) => {
-      // Avoid duplicate copy buttons
-      if (pre.querySelector('.copy-btn')) return;
+    void PostComponent;
 
-      const codeElement = pre.querySelector('code');
-      const codeText = codeElement?.innerText || '';
+    let mounted: Array<ReturnType<typeof mount>> = [];
+    let cancelled = false;
 
-      // Create button container wrapper
-      pre.classList.add('relative', 'group');
+    tick().then(() => {
+      if (cancelled) return;
 
-      // Create copy button element
-      const btn = document.createElement('button');
-      btn.className = 'copy-btn absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-secondary/80 hover:bg-secondary text-xs px-2.5 py-1.5 rounded-lg border border-border text-muted hover:text-fg font-sans cursor-pointer flex items-center gap-1.5 backdrop-blur-sm z-10 shadow-sm';
-      btn.innerHTML = `
-        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-        <span>Copy</span>
-      `;
+      const preBlocks = document.querySelectorAll(".prose-custom pre");
 
-      btn.onclick = () => {
-        navigator.clipboard.writeText(codeText).then(() => {
-          btn.innerHTML = `
-            <svg class="h-3.5 w-3.5 text-accent" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            <span class="text-accent font-medium">Copied!</span>
-          `;
-          setTimeout(() => {
-            btn.innerHTML = `
-              <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-              <span>Copy</span>
-            `;
-          }, 2000);
+      preBlocks.forEach((pre) => {
+        if (pre.querySelector(".copy-btn")) return;
+
+        const codeElement = pre.querySelector("code");
+        const codeText = codeElement?.innerText || "";
+
+        pre.classList.add("relative", "group");
+
+        const instance = mount(CopyCodeButton, {
+          target: pre,
+          props: { code: codeText },
         });
-      };
-
-      pre.appendChild(btn);
+        mounted.push(instance);
+      });
     });
+
+    return () => {
+      cancelled = true;
+      for (const instance of mounted) {
+        unmount(instance);
+      }
+    };
   });
 </script>
 
 <svelte:window onscroll={handleScroll} />
 
-<!-- Reading Progress Bar -->
 <div class="fixed top-0 left-0 right-0 h-1 bg-secondary/50 z-50">
-  <div 
-    class="h-full bg-accent transition-all duration-75 ease-out" 
+  <div
+    class="h-full bg-accent transition-all duration-75 ease-out"
     style="width: {scrollProgress}%"
   ></div>
 </div>
@@ -71,33 +67,23 @@
 </svelte:head>
 
 <article class="space-y-8 reveal">
-  <!-- Back link -->
-  <a
-    href="/blog"
-    class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg transition-colors"
-  >
-    <ArrowLeft class="h-4 w-4" />
-    Back to blog
-  </a>
+  <BackLink href="/blog" label="Back to blog" />
 
-  <!-- Cover Image -->
   {#if data.post.coverImage}
     <div class="overflow-hidden rounded-2xl border border-border/60 shadow-sm aspect-[2.2/1]">
-      <img 
-        src={data.post.coverImage} 
-        alt={data.post.title} 
+      <img
+        src={data.post.coverImage}
+        alt={data.post.title}
         class="w-full h-full object-cover select-none"
       />
     </div>
   {/if}
 
-  <!-- Header -->
   <div class="space-y-3">
     <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl leading-tight">
       {data.post.title}
     </h1>
 
-    <!-- Meta Details & Badges -->
     <div class="flex flex-wrap items-center gap-2 text-sm text-muted pt-1">
       <time datetime={data.post.date}>{data.post.date}</time>
       <span class="text-neutral-300 dark:text-neutral-700 font-normal">&bull;</span>
@@ -106,7 +92,9 @@
         <span class="text-neutral-300 dark:text-neutral-700 font-normal">&bull;</span>
         <div class="flex flex-wrap gap-1.5">
           {#each data.post.tags as tag}
-            <span class="inline-flex items-center px-2 py-0.5 rounded bg-secondary text-muted text-xs font-medium">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded bg-secondary text-muted text-xs font-medium"
+            >
               {tag}
             </span>
           {/each}
@@ -117,33 +105,24 @@
 
   <hr class="border-border/60" />
 
-  <!-- Content -->
-  <div class="prose-custom leading-relaxed">
+  <div class="prose-custom prose-heading-hidden leading-relaxed scroll-reveal" use:inview>
     <PostComponent />
   </div>
 
-  <!-- Footer -->
   <div class="border-t border-border pt-6 mt-12 flex justify-between items-center">
-    <a
-      href="/blog"
-      class="inline-flex items-center gap-1 text-sm text-muted hover:text-fg transition-colors"
-    >
-      &larr; All posts
-    </a>
+    <BackLink href="/blog" label="All posts" />
   </div>
 </article>
 
 <style>
-  /* Base paragraph and structure spacing */
   .prose-custom :global(p) {
-    font-size: 1.0625rem; /* ~17px for best reading measure */
+    font-size: 1.0625rem;
     line-height: 1.8;
     color: var(--color-fg);
     margin-bottom: 1.5rem;
     opacity: 0.95;
   }
 
-  /* Heading sizes and anchors */
   .prose-custom :global(h2) {
     font-size: 1.4rem;
     font-weight: 700;
@@ -162,7 +141,6 @@
     color: var(--color-fg);
   }
 
-  /* List styles */
   .prose-custom :global(ul) {
     list-style-type: none;
     padding-left: 1.25rem;
@@ -185,7 +163,6 @@
     font-weight: bold;
   }
 
-  /* Link styling in content */
   .prose-custom :global(a) {
     color: var(--color-accent);
     text-decoration: none;
@@ -196,7 +173,6 @@
     text-decoration: underline;
   }
 
-  /* Blockquote styling */
   .prose-custom :global(blockquote) {
     border-left: 3px solid var(--color-accent);
     padding: 0.5rem 0 0.5rem 1.25rem;
@@ -205,7 +181,6 @@
     color: var(--color-muted);
   }
 
-  /* Inline Code styling */
   .prose-custom :global(code) {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.875rem;
@@ -216,7 +191,6 @@
     color: var(--color-fg);
   }
 
-  /* Fenced Code Block Container (pre) */
   .prose-custom :global(pre) {
     background: var(--color-secondary);
     border: 1px solid var(--color-border);

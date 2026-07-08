@@ -122,7 +122,7 @@
               href={icon.href}
               target="_blank"
               rel="noopener noreferrer"
-              class="icon-pill inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300"
+              class="icon-pill press-feedback inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-300"
               class:-ml-2={j > 0}
               aria-label={icon.label}
             >
@@ -138,8 +138,9 @@
     {:else if section === "cta"}
       <section in:fly={{ y: 20, duration: 400, delay }}>
         <p class="text-2xl leading-relaxed">
-          Curious about my tech stack?
-          <a href="/stack" class="text-accent hover:underline">Explore the tools I use.</a>
+          Curious about my tech stack? Explore the
+          <a href="/stack" class="stack-word-link">tools</a>
+          I use.
         </p>
       </section>
     {/if}
@@ -152,24 +153,50 @@
   <section class="space-y-1 text-sm">
     <p>
       Want to read my writing?
-      <a href="/blog" class="text-accent hover:underline">Browse through my articles.</a>
+      <a href="/blog" class="text-accent link-underline">Browse through my articles.</a>
     </p>
     <p>
       Want to say hi?
-      <a href="/contact" class="text-accent hover:underline">Let's get in touch.</a>
+      <a href="/contact" class="text-accent link-underline">Let's get in touch.</a>
     </p>
   </section>
 </div>
 
 <style>
-  /* ponytail: icons tilt -6deg, go upright on group hover */
   .icon-row :global(.tilted-icon) {
     transform: rotate(-6deg);
-    transition: transform 0.3s ease;
+    transition:
+      transform var(--motion-duration-normal) var(--motion-ease),
+      opacity var(--motion-duration-normal) var(--motion-ease);
   }
 
   .icon-row:hover :global(.tilted-icon) {
     transform: rotate(0deg);
+  }
+
+  .icon-pill:hover :global(.tilted-icon) {
+    transform: rotate(0deg) scale(1.08);
+  }
+
+  .icon-pill {
+    transition:
+      margin-left var(--motion-duration-normal) var(--motion-ease),
+      transform var(--motion-duration-normal) var(--motion-ease),
+      box-shadow var(--motion-duration-normal) var(--motion-ease),
+      opacity var(--motion-duration-normal) var(--motion-ease);
+  }
+
+  .icon-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px oklch(0 0 0 / 0.08);
+  }
+
+  :global(.dark) .icon-pill:hover {
+    box-shadow: 0 4px 12px oklch(0 0 0 / 0.25);
+  }
+
+  .icon-row:hover .icon-pill:not(:hover) {
+    opacity: 0.75;
   }
 
   .icon-row:hover .icon-pill {
@@ -180,9 +207,45 @@
     transform: scale(1.1) rotate(3deg);
   }
 
+  .stack-word-link {
+    position: relative;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  .stack-word-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-accent);
+    transition: width var(--motion-duration-normal) var(--motion-ease);
+  }
+
+  .stack-word-link:hover {
+    opacity: 0.85;
+  }
+
+  .stack-word-link:hover::after {
+    width: 100%;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     section {
       animation: none !important;
+    }
+
+    .icon-pill:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .icon-row:hover .icon-pill:not(:hover) {
+      opacity: 1;
     }
   }
 </style>

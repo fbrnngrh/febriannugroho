@@ -103,6 +103,14 @@
       "dependencies": ["feat-005", "feat-012"],
       "status": "in_progress",
       "evidence": "Dockerfile, nginx.conf, .dockerignore, docs/deployment.md added 2026-07-06; Easypanel build path documented as repo root; Docker unavailable locally, so image smoke test is pending"
+    },
+    {
+      "id": "feat-014",
+      "name": "Motion Design & Micro-interactions",
+      "description": "Premium micro-interactions and scroll-triggered reveals across home, stack, blog, and contact without page transitions",
+      "dependencies": ["feat-009", "feat-007"],
+      "status": "done",
+      "evidence": "inview action, motion tokens, scroll-reveal CSS utilities; StackToolItem + BackLink + CopyCodeButton components; home icon micro-interactions; stack/blog scroll reveals; contact form feedback; theme toggle icon crossfade; GitHub calendar wave fill; bun run -F web check 0 errors 2026-07-08"
     }
   ]
 }

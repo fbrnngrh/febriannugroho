@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft } from "lucide-svelte";
+  import type { Component } from "svelte";
   import {
     SvglWindsurfLogo,
     SvglCursorLogo,
@@ -25,18 +25,20 @@
     SvglFigmaLogo,
     SvglNotionLogo,
   } from "@selemondev/svgl-svelte";
+  import { inview } from "$lib/actions/inview";
+  import BackLink from "$lib/components/BackLink.svelte";
   import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
   import GitHubContributionCalendar from "$lib/components/GitHubContributionCalendar.svelte";
+  import StackToolItem from "$lib/components/StackToolItem.svelte";
 
   interface StackItem {
-    icon: any;
+    icon: Component;
     name: string;
     description: string;
     href?: string;
     monochrome?: boolean;
   }
 
-  // Section 1: Development Workspace (IDEs & CLIs)
   const workspaceTools: StackItem[] = [
     {
       icon: SvglWindsurfLogo,
@@ -74,7 +76,6 @@
     },
   ];
 
-  // Section 2: Frameworks & Languages
   const frameworkTools: StackItem[] = [
     {
       icon: SvglNextjsLogo,
@@ -143,7 +144,6 @@
     },
   ];
 
-  // Section 3: Databases, Runtimes & Infrastructure
   const infraTools: StackItem[] = [
     {
       icon: SvglPostgreSQLLogo,
@@ -183,7 +183,6 @@
     },
   ];
 
-  // Section 4: Productivity & Life Tools
   const lifeTools: StackItem[] = [
     {
       icon: SvglBraveBrowserLogo,
@@ -206,6 +205,13 @@
       monochrome: true,
     },
   ];
+
+  const sections = [
+    { title: "My Development Workspace", tools: workspaceTools },
+    { title: "Frameworks & Languages", tools: frameworkTools },
+    { title: "Infrastructure & Databases", tools: infraTools },
+    { title: "Productivity & Life Tools", tools: lifeTools },
+  ];
 </script>
 
 <svelte:head>
@@ -217,17 +223,12 @@
 </svelte:head>
 
 <div class="space-y-12">
-  <!-- Back link -->
-  <a
-    href="/"
-    class="inline-flex items-center gap-1 text-sm text-muted hover:text-fg transition-colors"
-  >
-    <ArrowLeft class="h-4 w-4" />
-    Back to home
-  </a>
+  <BackLink href="/" label="Back to home" />
 
-  <!-- Profile Header / Bio & GitHub Graph Card -->
-  <div class="rounded-2xl border border-border/80 bg-secondary/15 p-5 md:p-6 space-y-6">
+  <div
+    class="scroll-reveal rounded-2xl border border-border/80 bg-secondary/15 p-5 md:p-6 space-y-6"
+    use:inview
+  >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-3.5">
         <ProfilePhoto src="/images/profile-photo-2.webp" />
@@ -238,9 +239,11 @@
           <p class="text-[11px] text-muted">Software Engineer</p>
         </div>
       </div>
-      
+
       <div class="self-start sm:self-auto">
-        <span class="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
+        <span
+          class="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent"
+        >
           <span class="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"></span>
           Active on GitHub
         </span>
@@ -252,219 +255,26 @@
     </div>
   </div>
 
-  <!-- Heading -->
   <p
-    class="text-2xl font-light text-neutral-800 dark:text-neutral-200 leading-9 tracking-tight"
+    class="scroll-reveal text-2xl font-light text-neutral-800 dark:text-neutral-200 leading-9 tracking-tight"
+    use:inview
   >
     Here are the tools and services I use to build my apps and power my
     developer workflow.
   </p>
 
-  <!-- My Development Workspace -->
-  <div class="space-y-6">
-    <h2
-      class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 border-b border-border/40 pb-2"
-    >
-      My Development Workspace
-    </h2>
-    <div class="grid gap-6 sm:grid-cols-2">
-      {#each workspaceTools as tool}
-        <div class="flex items-start gap-4">
-          <!-- Icon container -->
-          <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/50 border border-border/80 p-2.5 shadow-sm transition-transform duration-200 hover:scale-105"
-          >
-            <tool.icon
-              width={28}
-              height={28}
-              class="{tool.monochrome ? 'dark:invert' : ''} shrink-0"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="space-y-1">
-            {#if tool.href && tool.href !== "#"}
-              <a
-                href={tool.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-base font-semibold text-accent hover:underline inline-block"
-              >
-                {tool.name}
-              </a>
-            {:else}
-              <span class="text-base font-semibold text-fg">
-                {tool.name}
-              </span>
-            {/if}
-            <p
-              class="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-1.5 leading-relaxed font-normal"
-            >
-              <span
-                class="text-neutral-400 dark:text-neutral-600 select-none mt-0.5"
-                >↳</span
-              >
-              <span class="flex-1">{tool.description}</span>
-            </p>
-          </div>
-        </div>
-      {/each}
+  {#each sections as section}
+    <div class="scroll-reveal-group space-y-6" use:inview>
+      <h2
+        class="section-heading-reveal text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 border-b border-border/40 pb-2"
+      >
+        {section.title}
+      </h2>
+      <div class="grid gap-6 sm:grid-cols-2">
+        {#each section.tools as tool, i (tool.name)}
+          <StackToolItem {tool} index={i} />
+        {/each}
+      </div>
     </div>
-  </div>
-
-  <!-- Frameworks & Languages -->
-  <div class="space-y-6">
-    <h2
-      class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 border-b border-border/40 pb-2"
-    >
-      Frameworks & Languages
-    </h2>
-    <div class="grid gap-6 sm:grid-cols-2">
-      {#each frameworkTools as tool}
-        <div class="flex items-start gap-4">
-          <!-- Icon container -->
-          <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/50 border border-border/80 p-2.5 shadow-sm transition-transform duration-200 hover:scale-105"
-          >
-            <tool.icon
-              width={28}
-              height={28}
-              class="{tool.monochrome ? 'dark:invert' : ''} shrink-0"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="space-y-1">
-            {#if tool.href && tool.href !== "#"}
-              <a
-                href={tool.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-base font-semibold text-accent hover:underline inline-block"
-              >
-                {tool.name}
-              </a>
-            {:else}
-              <span class="text-base font-semibold text-fg">
-                {tool.name}
-              </span>
-            {/if}
-            <p
-              class="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-1.5 leading-relaxed font-normal"
-            >
-              <span
-                class="text-neutral-400 dark:text-neutral-600 select-none mt-0.5"
-                >↳</span
-              >
-              <span class="flex-1">{tool.description}</span>
-            </p>
-          </div>
-        </div>
-      {/each}
-    </div>
-  </div>
-
-  <!-- Infrastructure & Databases -->
-  <div class="space-y-6">
-    <h2
-      class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 border-b border-border/40 pb-2"
-    >
-      Infrastructure & Databases
-    </h2>
-    <div class="grid gap-6 sm:grid-cols-2">
-      {#each infraTools as tool}
-        <div class="flex items-start gap-4">
-          <!-- Icon container -->
-          <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/50 border border-border/80 p-2.5 shadow-sm transition-transform duration-200 hover:scale-105"
-          >
-            <tool.icon
-              width={28}
-              height={28}
-              class="{tool.monochrome ? 'dark:invert' : ''} shrink-0"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="space-y-1">
-            {#if tool.href && tool.href !== "#"}
-              <a
-                href={tool.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-base font-semibold text-accent hover:underline inline-block"
-              >
-                {tool.name}
-              </a>
-            {:else}
-              <span class="text-base font-semibold text-fg">
-                {tool.name}
-              </span>
-            {/if}
-            <p
-              class="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-1.5 leading-relaxed font-normal"
-            >
-              <span
-                class="text-neutral-400 dark:text-neutral-600 select-none mt-0.5"
-                >↳</span
-              >
-              <span class="flex-1">{tool.description}</span>
-            </p>
-          </div>
-        </div>
-      {/each}
-    </div>
-  </div>
-
-  <!-- Productivity & Life Tools -->
-  <div class="space-y-6">
-    <h2
-      class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 border-b border-border/40 pb-2"
-    >
-      Productivity & Life Tools
-    </h2>
-    <div class="grid gap-6 sm:grid-cols-2">
-      {#each lifeTools as tool}
-        <div class="flex items-start gap-4">
-          <!-- Icon container -->
-          <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/50 border border-border/80 p-2.5 shadow-sm transition-transform duration-200 hover:scale-105"
-          >
-            <tool.icon
-              width={28}
-              height={28}
-              class="{tool.monochrome ? 'dark:invert' : ''} shrink-0"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="space-y-1">
-            {#if tool.href && tool.href !== "#"}
-              <a
-                href={tool.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-base font-semibold text-accent hover:underline inline-block"
-              >
-                {tool.name}
-              </a>
-            {:else}
-              <span class="text-base font-semibold text-fg">
-                {tool.name}
-              </span>
-            {/if}
-            <p
-              class="text-sm text-neutral-600 dark:text-neutral-400 flex items-start gap-1.5 leading-relaxed font-normal"
-            >
-              <span
-                class="text-neutral-400 dark:text-neutral-600 select-none mt-0.5"
-                >↳</span
-              >
-              <span class="flex-1">{tool.description}</span>
-            </p>
-          </div>
-        </div>
-      {/each}
-    </div>
-  </div>
+  {/each}
 </div>

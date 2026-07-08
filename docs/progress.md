@@ -2,12 +2,22 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-06
+**Last Updated:** 2026-07-08
 **Active Feature:** Easypanel GitHub Dockerfile Deployment (in progress)
 
 ## Status
 
 ### What's Done
+
+- [x] **Motion Design & Micro-interactions (feat-014)** — 2026-07-08
+  - Added motion foundation: `inview` Intersection Observer action, extended `motion.ts` tokens/helpers, and shared CSS utilities (`scroll-reveal`, `press-feedback`, `icon-hover-lift`, `input-focus-line`, `pop-in`).
+  - Home: strengthened per-icon hover scale/lift, sibling fade, social press feedback, and `link-underline` footer links.
+  - Stack: extracted `StackToolItem`, added scroll-triggered section/item choreography with staggered reveals and elbow fade.
+  - Blog: scroll-triggered `BlogListItem` cards, tag pill pop, search clear animation, empty-state fade.
+  - Contact: `BackLink`, input focus line, copy-email pop-in, submit press feedback, success fade-slide-up.
+  - Blog article: `CopyCodeButton` component (Svelte mount), prose heading reveal on scroll.
+  - Theme toggle: Sun/Moon crossfade with rotate; GitHub calendar per-week wave fill on inview.
+  - Verification: `bun run -F web check` — 0 errors, 0 warnings.
 
 - [ ] **Easypanel GitHub Dockerfile Deployment (feat-013)** — 2026-07-06
   - Researched lightweight Easypanel GitHub-source deployment approach for a static SvelteKit monorepo: root Dockerfile + multi-stage Bun build + Nginx runtime.

@@ -18,6 +18,10 @@
   --color-destructive: oklch(0.55 0.2 25);
   --radius-base: 0.625rem;
   --font-sans: "Plus Jakarta Sans", sans-serif;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 220ms;
+  --motion-duration-slow: 300ms;
 }
 
 /* Dark mode */
@@ -65,7 +69,6 @@ body {
 .link-underline {
   position: relative;
   text-decoration: none;
-  color: var(--color-fg);
 }
 
 .link-underline::after {
@@ -115,6 +118,268 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
+    animation: none;
+  }
+}
+
+/* ============================================
+   Scroll-triggered reveal
+   ============================================ */
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  contain: layout style;
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease),
+    transform var(--motion-duration-slow) var(--motion-ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.scroll-reveal.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.scroll-reveal-group .scroll-reveal-stagger {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  contain: layout style;
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease),
+    transform var(--motion-duration-slow) var(--motion-ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.scroll-reveal-group.in-view .scroll-reveal-stagger {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.scroll-reveal-stagger {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  contain: layout style;
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease),
+    transform var(--motion-duration-slow) var(--motion-ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.in-view .scroll-reveal-stagger,
+.scroll-reveal-stagger.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.section-heading-reveal {
+  position: relative;
+}
+
+.section-heading-reveal::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  background-color: var(--color-border);
+  transition: width var(--motion-duration-normal) var(--motion-ease);
+  transition-delay: var(--delay, 60ms);
+}
+
+.section-heading-reveal.in-view::after,
+.scroll-reveal-group.in-view .section-heading-reveal::after {
+  width: 100%;
+}
+
+/* ============================================
+   Micro-interaction utilities
+   ============================================ */
+
+.press-feedback {
+  transition: transform var(--motion-duration-fast) var(--motion-ease);
+}
+
+.press-feedback:active {
+  transform: scale(0.97);
+}
+
+.icon-hover-lift {
+  transition:
+    transform var(--motion-duration-normal) var(--motion-ease),
+    box-shadow var(--motion-duration-normal) var(--motion-ease);
+}
+
+.icon-hover-lift:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.08);
+}
+
+.dark .icon-hover-lift:hover {
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.25);
+}
+
+.input-focus-line {
+  position: relative;
+}
+
+.input-focus-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--motion-duration-normal) var(--motion-ease);
+}
+
+.input-focus-line:focus-within::after {
+  transform: scaleX(1);
+}
+
+.pop-in {
+  animation: pop-in var(--motion-duration-normal) var(--motion-ease);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-slide-up {
+  animation: fade-slide-up var(--motion-duration-normal) var(--motion-ease);
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.clear-btn-enter {
+  animation: clear-btn-enter var(--motion-duration-normal) var(--motion-ease);
+}
+
+@keyframes clear-btn-enter {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+.prose-heading-hidden :is(h2, h3) {
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+  transition:
+    opacity var(--motion-duration-normal) var(--motion-ease),
+    transform var(--motion-duration-normal) var(--motion-ease);
+}
+
+.prose-heading-hidden.in-view :is(h2, h3) {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.prose-heading-hidden :is(h2, h3):nth-of-type(1) {
+  transition-delay: 0ms;
+}
+.prose-heading-hidden :is(h2, h3):nth-of-type(2) {
+  transition-delay: 50ms;
+}
+.prose-heading-hidden :is(h2, h3):nth-of-type(3) {
+  transition-delay: 100ms;
+}
+.prose-heading-hidden :is(h2, h3):nth-of-type(4) {
+  transition-delay: 150ms;
+}
+.prose-heading-hidden :is(h2, h3):nth-of-type(n + 5) {
+  transition-delay: 200ms;
+}
+
+.calendar-wave {
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+  transition:
+    opacity var(--motion-duration-normal) var(--motion-ease),
+    transform var(--motion-duration-normal) var(--motion-ease);
+}
+
+.calendar-wave.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.calendar-grid-fade {
+  transition: opacity 200ms var(--motion-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal,
+  .scroll-reveal-stagger {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .calendar-wave {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .section-heading-reveal::after {
+    width: 100%;
+    transition: none;
+  }
+
+  .press-feedback:active {
+    transform: none;
+  }
+
+  .icon-hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .input-focus-line::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+
+  .pop-in,
+  .fade-slide-up,
+  .clear-btn-enter {
+    animation: none;
+  }
+
+  .prose-heading-hidden :is(h2, h3) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .calendar-wave .contrib-day {
+    opacity: 1;
+    transform: none;
     animation: none;
   }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { inview } from "$lib/actions/inview";
   import defaultData from "$lib/data/github-contributions.json";
 
   let { data = defaultData } = $props<{
@@ -127,20 +128,22 @@
         </div>
 
         <!-- Calendar Grid -->
-        <div class="flex gap-[3px]">
-          {#each activeData.weeks as week}
-            <div class="flex flex-col gap-[3px] shrink-0">
-              {#each week.contributionDays as day}
-                {@const level = getLevel(day.contributionCount)}
-                <div
-                  class="h-2.5 w-2.5 rounded-[1.5px] contrib-day contrib-level-{level} transition-all duration-150 hover:scale-125"
-                  title="{day.contributionCount} contributions on {formatDate(day.date)}"
-                  aria-label="{day.contributionCount} contributions on {formatDate(day.date)}"
-                ></div>
-              {/each}
-            </div>
-          {/each}
-        </div>
+        {#key selectedYear}
+          <div class="calendar-wave flex gap-[3px]" use:inview>
+            {#each activeData.weeks as week}
+              <div class="flex flex-col gap-[3px] shrink-0">
+                {#each week.contributionDays as day}
+                  {@const level = getLevel(day.contributionCount)}
+                  <div
+                    class="h-2.5 w-2.5 rounded-[1.5px] contrib-day contrib-level-{level} transition-transform duration-150 hover:scale-125"
+                    title="{day.contributionCount} contributions on {formatDate(day.date)}"
+                    aria-label="{day.contributionCount} contributions on {formatDate(day.date)}"
+                  ></div>
+                {/each}
+              </div>
+            {/each}
+          </div>
+        {/key}
       </div>
     </div>
   </div>
