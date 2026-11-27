@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mount, tick, unmount } from "svelte";
+  import { mount, tick, unmount, untrack } from "svelte";
   import { afterNavigate } from "$app/navigation";
   import { inview } from "#lib/actions/inview.ts";
   import ArrowLink from "#lib/components/ArrowLink.svelte";
@@ -29,12 +29,12 @@
     // reading on to the next article keeps the way back to Home
     if (!path?.startsWith(`${DECISIONS.writingPath}/`)) fromHome = previousIsHome;
   });
-  // the illustration cover plays once shortly after each article opens (also when reading on to the next one)
+  // the illustration cover plays once as each article opens: set while the cover is still faded out, so the
+  // reset to frame 0 is never seen; the ~300 ms beat is --play-delay on the cover, not a timer racing the fade
   let artPlay = $state(0);
   $effect(() => {
     void post.slug;
-    const t = setTimeout(() => artPlay++, 300);
-    return () => clearTimeout(t);
+    untrack(() => artPlay++);
   });
 
   function back(e: MouseEvent) {
@@ -131,7 +131,7 @@
   {:else}
     <!-- no mockup or hero image: the post's own illustration, in its card colour, plays once on open -->
     {@const art = coverOf(post)}
-    <div class="cover art-cover col-wide" data-reveal="fade" use:inview style:--cover-bg={art.bg} style:--cover-accent={art.accent}>
+    <div class="cover art-cover col-wide" data-reveal="fade" use:inview style:--cover-bg={art.bg} style:--cover-accent={art.accent} style:--play-delay="300ms">
       <CoverArt kind={post.tags[0] ?? ""} slug={post.slug} play={artPlay} />
     </div>
   {/if}

@@ -41,7 +41,12 @@
   // cards entering together start in a wave after the row's own reveal, gaps shrinking
   const WAVE = [150, 230, 290, 330, 350, 360];
 
+  // a replay inside the 1.4 s motion budget would snap a running cover back to frame 0 (hover out and in)
+  const lastPlay: Record<string, number> = {};
   function replay(slug: string, delay = 0) {
+    const now = performance.now();
+    if (now - (lastPlay[slug] ?? -1e4) < 1400) return;
+    lastPlay[slug] = now;
     delays[slug] = delay;
     plays[slug] = (plays[slug] ?? 0) + 1;
   }
@@ -56,6 +61,9 @@
             const slug = (e.target as HTMLElement).dataset.slug!;
             if (!plays[slug]) replay(slug, WAVE[Math.min(i, WAVE.length - 1)]);
           });
+        // only the cards revealed with the row's own fade autoplay; a card already showing its final
+        // frame (scrolled in sideways later) would visibly snap to frame 0, so it waits for hover/focus
+        io.disconnect();
       },
       { threshold: 0.5 },
     );
