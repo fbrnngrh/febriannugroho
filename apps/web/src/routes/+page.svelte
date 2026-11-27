@@ -185,8 +185,8 @@
   .role { margin: 0; font-size: 15px; line-height: 1.4; color: var(--fg-muted); }
   .hero-line {
     margin: 0;
-    /* ~22px on a 390px phone, ~32px at 768px, 40px from ~1100px */
-    font-size: clamp(1.3125rem, 0.75rem + 2.6vw, 2.5rem);
+    /* ~23.5px on a 390px phone, ~32px at 768px, 40px from ~1100px */
+    font-size: clamp(1.4375rem, 0.875rem + 2.4vw, 2.5rem);
     font-weight: 500;
     line-height: 1.25;
     letter-spacing: -0.015em;
