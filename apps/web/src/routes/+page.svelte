@@ -151,8 +151,8 @@
   .hero {
     position: relative;
     display: grid;
-    /* 85% of the screen: the stage card peeks at the fold, as on Molly */
-    min-height: 85dvh;
+    /* full screen, as on Molly: the stage stays below the fold and only its glow tints the bottom of the first view */
+    min-height: 100dvh;
     padding: 0 0 120px;
     isolation: isolate;
     overflow: clip;
