@@ -98,6 +98,12 @@ async function fetchContributions() {
 
 try {
   const data = await fetchContributions();
+  // same counts as the snapshot: keep the file (and git) untouched instead of only bumping fetchedAt
+  const previous = existsSync(outputPath) ? JSON.parse(readFileSync(outputPath, "utf-8")) : null;
+  if (JSON.stringify(previous?.weeks) === JSON.stringify(data.weeks)) {
+    console.log("ℹ️ Contributions unchanged; snapshot kept.");
+    process.exit(0);
+  }
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, JSON.stringify(data, null, 2) + "\n", "utf-8");
   console.log(`✅ Saved ${data.weeks.length} weeks to ${outputPath}`);
