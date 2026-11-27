@@ -3,19 +3,12 @@
   import Icon from "./Icon.svelte";
 
   // Shipping in public (Figma 26:1771, Color=Mono). Snapshot counts per day, trimmed in routes/+page.server.ts.
-  let { weeks }: { weeks: number[][] } = $props();
+  /** [count, level] per day; level is GitHub's own quartile (0 = none … 4 = fourth quartile) */
+  let { weeks }: { weeks: [number, number][][] } = $props();
 
-  const total = $derived(weeks.flat().reduce((sum, n) => sum + n, 0));
+  const total = $derived(weeks.flat().reduce((sum, [n]) => sum + n, 0));
   // no data (fetch failed at build): hide the grid and never show "0" (03-ux-pages §5)
   const hasData = $derived(weeks.length > 0 && total > 0);
-
-  function level(count: number) {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 5) return 2;
-    if (count <= 8) return 3;
-    return 4;
-  }
 </script>
 
 <div class="shipping">
@@ -29,8 +22,8 @@
     <div class="grid" aria-hidden="true">
       {#each weeks as week, wi (wi)}
         <div class="col">
-          {#each week as count, di (di)}
-            <span class="cell" data-level={level(count)}></span>
+          {#each week as [, level], di (di)}
+            <span class="cell" data-level={level}></span>
           {/each}
         </div>
       {/each}
