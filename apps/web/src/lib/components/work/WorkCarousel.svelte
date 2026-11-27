@@ -5,7 +5,7 @@
   import Icon from "../Icon.svelte";
   import WorkCover from "./WorkCover.svelte";
 
-  let { onopen }: { onopen: (id: ProjectId) => void } = $props();
+  let { onopen }: { onopen: (id: ProjectId, from: HTMLElement) => void } = $props();
 
   let track = $state<HTMLUListElement>();
   let atStart = $state(true);
@@ -72,11 +72,12 @@
       onpointerup={up}
       onpointercancel={up}
       aria-label="Selected work"
+      use:inview={{ class: "revealed" }}
     >
       {#each PROJECTS as p, i (p.id)}
-        <li data-reveal style:--reveal-delay="{[0, 60, 120, 120][i]}ms" use:inview>
+        <li style:--reveal-delay="{[0, 60, 120, 120][i]}ms">
           {#if p.detail}
-            <button type="button" class="work-card" onclick={() => onopen(p.id)} aria-haspopup="dialog">
+            <button type="button" class="work-card" onclick={(e) => onopen(p.id, e.currentTarget)} aria-haspopup="dialog">
               <span class="cover-wrap card"><WorkCover project={p} /></span>
               <span class="meta">
                 <span class="title">{p.title}<Icon name="expand" size={14} class="expand" /></span>
@@ -140,6 +141,19 @@
   .track:global(.dragging) { cursor: grabbing; scroll-snap-type: none; }
   @media (min-width: 808px) {
     .track { padding-inline: 0; scroll-padding-inline: 0; }
+  }
+  /* cards reveal together when the list enters (off-screen cards are clipped, so per-card triggers never fire) */
+  :global(.js) .track li { opacity: 0; translate: 0 12px; filter: blur(4px); }
+  :global(.js) .track:global(.revealed) li {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0);
+    transition: opacity var(--dur-reveal) var(--ease-out), translate var(--dur-reveal) var(--ease-out), filter var(--dur-reveal) var(--ease-out);
+    transition-delay: var(--reveal-delay);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.js) .track li { translate: none; filter: none; }
+    :global(.js) .track:global(.revealed) li { transition: opacity 200ms ease-out; }
   }
   li {
     flex: 0 0 min(420px, 82vw);

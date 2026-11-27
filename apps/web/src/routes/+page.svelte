@@ -35,7 +35,7 @@
 
   function openDealer(e: MouseEvent) {
     e.preventDefault();
-    dialog?.open("dealer");
+    dialog?.open("dealer", e.currentTarget as HTMLElement);
   }
 </script>
 
@@ -81,7 +81,7 @@
   </div>
 
   <section id="work" aria-label="Selected work">
-    <WorkCarousel onopen={(id) => dialog?.open(id)} />
+    <WorkCarousel onopen={(id, from) => dialog?.open(id, from)} />
   </section>
 
   <section class="col-text about" aria-labelledby="about-h">
@@ -255,6 +255,7 @@
 
   .sections {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 120px;
   }
   .about { display: grid; gap: 16px; }

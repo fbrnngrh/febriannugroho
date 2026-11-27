@@ -14,8 +14,6 @@
     "check-types": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@selemondev/svgl-svelte": "^2.17.0",
-    "lucide-svelte": "^1.0.1",
     "mdsvex": "^1.1.0"
   },
   "devDependencies": {

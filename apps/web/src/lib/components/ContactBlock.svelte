@@ -35,7 +35,7 @@
       </li>
     {/each}
   </ul>
-  <p class="where tabular">{PERSON.location}{#if time} · <time>{time}</time> WITA{/if}</p>
+  <p class="where tabular">{PERSON.location}{#if time}{" · "}<time>{time}</time> WITA{/if}</p>
 </div>
 
 <style>

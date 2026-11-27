@@ -169,7 +169,10 @@
     {/each}
   </div>
 
-  <div class="merge"><span class="packet p4"></span></div>
+  <div class="merge" aria-hidden="true">
+    {#each WORKERS as w (w)}<span class="rise"></span>{/each}
+    <span class="join"><span class="packet p4"></span></span>
+  </div>
 
   <div class="node check">
     <p class="n-title"><span class="glyph solid">✓</span>fleet check</p>
@@ -331,9 +334,18 @@
   .v-link.pass::after { color: var(--ci-text); }
   .branch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; height: 40px; }
   .branch::before { content: ""; position: absolute; top: 12px; left: 12.5%; right: 12.5%; height: 1px; background: var(--line-default); }
-  .branch::after { left: 50%; top: 0; translate: 10px -6px; color: var(--fleet-text); }
+  .branch::after { left: 50%; top: 18px; translate: 8px 0; color: var(--fleet-text); }
   .drop { position: relative; justify-self: center; width: 1px; margin-top: 12px; background: var(--line-default); }
-  .merge { width: 1px; height: 36px; background: var(--line-default); }
+  .merge {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 100%;
+    height: 40px;
+  }
+  .rise { justify-self: center; width: 1px; height: 14px; background: var(--line-default); }
+  .merge::before { content: ""; position: absolute; top: 14px; left: 12.5%; right: 12.5%; height: 1px; background: var(--line-default); }
+  .join { position: absolute; left: 50%; top: 14px; width: 1px; height: 26px; background: var(--line-default); }
   .agents { position: relative; }
 
   /* packets travel along the line; each plays once when its step starts */
@@ -352,7 +364,7 @@
   .running[data-step="1"] .p1 { animation: travel-x 320ms var(--ease-flow) both; }
   .running[data-step="2"] .p2 { animation: travel-y 360ms var(--ease-flow) both; --len: 44px; }
   .running[data-step="3"] .p3 { animation: travel-y 400ms var(--ease-flow) both; animation-delay: calc(var(--i) * 1ms); --len: 28px; }
-  .running[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 36px; }
+  .running[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 26px; }
   .running[data-step="6"] .p5 { animation: travel-y 320ms var(--ease-flow) both; --len: 44px; }
   @keyframes travel-x {
     0% { opacity: 0; translate: 0 0; }
@@ -466,8 +478,9 @@
     .h-link .packet { display: none; }
     .agents { grid-template-columns: 1fr 1fr; }
     .branch { grid-template-columns: 1fr 1fr; }
-    .branch .drop:nth-child(n + 3) { display: none; }
-    .branch::before { left: 25%; right: 25%; }
+    .branch .drop:nth-child(n + 3), .merge .rise:nth-child(n + 3) { display: none; }
+    .branch, .merge { grid-template-columns: 1fr 1fr; }
+    .branch::before, .merge::before { left: 25%; right: 25%; }
   }
   @media (prefers-reduced-motion: reduce) {
     .packet { display: none; }

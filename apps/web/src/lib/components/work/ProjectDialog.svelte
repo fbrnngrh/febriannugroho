@@ -27,8 +27,9 @@
 
   const TECH_LOGO: Record<string, string> = { Docker: "docker", EasyPanel: "easypanel", Bun: "bun" };
 
-  export function open(projectId: ProjectId) {
-    trigger = document.activeElement as HTMLElement | null;
+  // trigger passed explicitly: Safari does not focus buttons on click
+  export function open(projectId: ProjectId, from?: HTMLElement | null) {
+    trigger = from ?? (document.activeElement as HTMLElement | null);
     deepLinked = false;
     openOverlay({ project: projectId }, `work/${projectId}`);
   }

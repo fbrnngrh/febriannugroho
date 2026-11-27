@@ -114,7 +114,7 @@
             {/if}
           </h3>
           <p class="meta">Written by Febrian</p>
-          <p class="meta"><time datetime={post.date}>{formatDate(post.date)}</time>{#if post.planned} · coming soon{/if}</p>
+          <p class="meta"><time datetime={post.date}>{formatDate(post.date)}</time>{#if post.planned}{" · coming soon"}{/if}</p>
         </div>
       </article>
       </div>
