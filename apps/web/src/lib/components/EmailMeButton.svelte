@@ -98,14 +98,14 @@
   }
 
   /* flight: starts 80 ms after the press, 160 ms linear then 260 ms ease-flow */
+  /* no from-keyframe: the flight starts from wherever the plane is (rest or hover pose) */
   .email-me[data-phase="flying"] .plane,
   .email-me[data-phase="done"] .plane {
-    translate: 70px -34px;
-    rotate: -32deg;
-    scale: 0.8;
-    opacity: 0;
-    transition: translate 420ms var(--ease-flow) 80ms, rotate 420ms var(--ease-flow) 80ms, scale 420ms var(--ease-flow) 80ms,
-      opacity 260ms linear 240ms;
+    animation: plane-fly 420ms linear 80ms forwards;
+  }
+  @keyframes plane-fly {
+    38% { translate: 27px -13px; rotate: -16deg; scale: 0.92; opacity: 1; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); /* --ease-flow; var() is ignored here */ }
+    to { translate: 70px -34px; rotate: -32deg; scale: 0.8; opacity: 0; }
   }
   .email-me[data-phase="flying"] .label.idle,
   .email-me[data-phase="done"] .label.idle {
@@ -134,6 +134,7 @@
   /* reduced motion ("Dikurangi"): no flight or rotation, labels crossfade 150 ms */
   @media (prefers-reduced-motion: reduce) {
     .email-me:active { scale: 1; }
+    .email-me[data-phase="flying"] .plane, .email-me[data-phase="done"] .plane { animation: none; opacity: 0; }
     .plane, .email-me .plane { translate: none !important; rotate: none !important; scale: 1 !important; transition: opacity 150ms ease-out !important; }
     .label.idle, .label.done { translate: none !important; transition: opacity 150ms ease-out !important; }
     .label.done :global(.tick) { scale: 1; filter: none; }

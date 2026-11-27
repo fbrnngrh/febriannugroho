@@ -15,7 +15,8 @@
 
 <span class="avatar" class:active style:--s="{size}px" aria-hidden="true">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d={FACES[id]} />
+    <path d={FACES[id]} class="face" />
+    <path d={FACES[id]} class="face on" />
   </svg>
 </span>
 
@@ -27,15 +28,26 @@
     width: var(--s);
     height: var(--s);
     border-radius: 30%;
+    position: relative;
+    isolation: isolate;
     background: var(--fleet-subtle);
-    color: var(--fleet-text);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--fleet-solid) 18%, transparent);
-    transition: box-shadow 240ms var(--ease-flow), background-color 240ms var(--ease-flow), color 240ms var(--ease-flow);
   }
+  /* active state crossfades on opacity: solid fill (::before), outer ring (::after), light face */
+  .avatar::before, .avatar::after, .face { transition: opacity 240ms var(--ease-flow); }
+  .avatar::before, .avatar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0;
+  }
+  .avatar::before { background: var(--fleet-solid); }
+  .avatar::after { box-shadow: 0 0 0 2px var(--surface-default), 0 0 0 4px color-mix(in srgb, var(--fleet-solid) 45%, transparent); }
   .avatar svg { width: 100%; height: 100%; }
-  .active {
-    background: var(--fleet-solid);
-    color: var(--stage-on-merged);
-    box-shadow: 0 0 0 2px var(--surface-default), 0 0 0 4px color-mix(in srgb, var(--fleet-solid) 45%, transparent);
-  }
+  .face { stroke: var(--fleet-text); }
+  .face.on { stroke: var(--stage-on-merged); opacity: 0; }
+  .active::before, .active::after, .active .face.on { opacity: 1; }
+  .active .face:not(.on) { opacity: 0; }
 </style>

@@ -117,7 +117,10 @@
   </div>
 
   <div class="col-stage inner">
-    <div class="frame" style:--frame="var(--stage-glow-{tone})">
+    <div class="frame">
+      {#each ["merged", "fail", "pass", "claude"] as t (t)}
+        <span class="frame-tint" class:active={t === tone} style:--frame="var(--stage-glow-{t})" aria-hidden="true"></span>
+      {/each}
       <div class="screen">
         {#key `${slide}-${shot}`}
           <div class="shot" in:shotIn out:shotOut>
@@ -231,11 +234,29 @@
   .frame {
     padding: clamp(16px, 3.8vw, 40px);
     border-radius: var(--radius-stage);
-    background: color-mix(in srgb, var(--frame) 70%, var(--surface-default));
+    position: relative;
+    isolation: isolate;
+    background: var(--surface-default);
     box-shadow: var(--shadow-ring-1);
-    transition: background-color var(--dur-stage-bg) var(--ease-stage);
+  }
+  /* the incoming tone fades in on top; the outgoing one drops out only after it is covered */
+  .frame-tint {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--frame) 70%, var(--surface-default));
+    opacity: 0;
+    transition: opacity 0s linear var(--dur-stage-bg);
+  }
+  .frame-tint.active {
+    z-index: 0;
+    opacity: 1;
+    transition: opacity var(--dur-stage-bg) var(--ease-stage);
   }
   .screen {
+    position: relative;
+    z-index: 1;
     display: grid;
     aspect-ratio: 960 / 560;
     min-height: 320px;
