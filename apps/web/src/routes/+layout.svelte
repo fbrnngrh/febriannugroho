@@ -8,6 +8,9 @@
   import { inview } from "#lib/actions/inview.ts";
   import { FOOTER } from "#lib/content/site.ts";
   import { prefersReducedMotion } from "#lib/motion.ts";
+  import "@fontsource-variable/inter";
+  import "@fontsource-variable/geist-mono";
+  import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
   import "../app.css";
 
   let { children } = $props();
@@ -36,6 +39,10 @@
     h1.focus({ preventScroll: true });
   });
 </script>
+
+<svelte:head>
+  <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin="anonymous" />
+</svelte:head>
 
 <a class="skip-link" href="#main">Skip to content</a>
 

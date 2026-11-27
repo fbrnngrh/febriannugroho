@@ -134,7 +134,7 @@
 
 ## Blockers / Risks
 
-- Redesign waits on Febrian: theme toggle (kept), /blog vs /writing (kept /blog), /contact (kept), stage scene language (English proposal, flagged), old 2025 posts (kept, `legacy: true`), font package (Google Fonts link for now).
+- Redesign waits on Febrian: theme toggle (kept), /blog vs /writing (kept /blog), /contact (kept), stage scene language (English proposal, flagged), old 2025 posts (kept, `legacy: true`). Fonts now self-hosted via @fontsource-variable (approved 2026-11-27).
 - Not verified: real-phone gestures (sheet/fan drag at 120 Hz), VoiceOver/NVDA, forced-colors, 200% zoom, Lighthouse, `docker build`.
 - mdsvex + SvelteKit 5 compatibility — needs `bun run -F web check` verification
 - Prerendering of `[slug]` route depends on `entries()` function working correctly
