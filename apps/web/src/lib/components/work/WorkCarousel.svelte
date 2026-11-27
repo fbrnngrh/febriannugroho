@@ -51,7 +51,7 @@
 
 <div class="work">
   <div class="label-row col-text">
-    <h2 class="label-mono">Selected work <span class="hint" aria-hidden="true">drag for more</span></h2>
+    <h2 class="label-mono" data-reveal use:inview>Selected work <span class="hint" aria-hidden="true">drag for more</span></h2>
     <div class="arrows">
       <button type="button" class="icon-button" aria-label="Previous project" aria-disabled={atStart} onclick={() => page(-1)}>
         <Icon name="arrow-left" size={14} />
@@ -110,40 +110,30 @@
   .hint { margin-left: 12px; }
   .arrows { display: flex; gap: 12px; }
 
+  /* starts on the text column's left edge and runs out past the right edge of the screen (like Molly);
+     a mask fades the edge instead of a box painted in the page colour over the stage glow */
   .viewport {
     position: relative;
-    width: min(var(--col-wide), 100%);
-    margin-inline: auto;
+    margin-inline-start: max(var(--gutter), (100% - var(--col-text)) / 2);
+    mask-image: linear-gradient(to right, #000 calc(100% - 96px), transparent);
   }
-  /* fade the right edge so the peeking card never reads as cut text */
-  .viewport::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: 96px;
-    background: linear-gradient(to right, transparent, var(--bg-page));
-    pointer-events: none;
-    transition: opacity var(--dur-card) var(--ease-out);
-  }
-  .viewport.at-end::after { opacity: 0; }
+  .viewport.at-end { mask-image: none; }
   .track {
     display: flex;
     gap: 16px;
     margin: 0;
-    padding: 4px var(--gutter) 8px;
+    /* top/bottom room for the 4 px hover lift and its shadow */
+    padding: 8px var(--gutter) 24px 0;
     list-style: none;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
+    scroll-padding-inline: 0;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     cursor: grab;
   }
   .track::-webkit-scrollbar { display: none; }
   .track:global(.dragging) { cursor: grabbing; scroll-snap-type: none; }
-  @media (min-width: 808px) {
-    .track { padding-inline: 0; scroll-padding-inline: 0; }
-  }
   /* cards reveal together when the list enters (off-screen cards are clipped, so per-card triggers never fire) */
   :global(.js) .track li { opacity: 0; translate: 0 12px; filter: blur(4px); }
   :global(.js) .track:global(.revealed) li {
@@ -194,8 +184,18 @@
   .title :global(.expand) { flex: none; margin-top: 2px; color: var(--fg-muted); }
   .desc { font-size: 15px; line-height: 1.4; color: var(--fg-muted); }
   @media (hover: hover) and (pointer: fine) {
-    .work-card:hover .cover-wrap { box-shadow: var(--shadow-ring-1), var(--shadow-hover-lift); }
+    .work-card:hover .cover-wrap { box-shadow: var(--shadow-ring-1), 0 18px 40px -14px rgb(0 0 0 / 0.22); }
+    :global(.dark) .work-card:hover .cover-wrap { box-shadow: var(--shadow-ring-1), 0 18px 40px -14px rgb(0 0 0 / 0.6); }
     .work-card:hover .cover-wrap::before { opacity: 0.04; }
+  }
+  /* review §3: the card itself may lift 4 px; its text and buttons never move */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .cover-wrap { transition: translate 200ms var(--ease-out), box-shadow 200ms var(--ease-out); }
+    .work-card:hover .cover-wrap { translate: 0 -4px; }
+    .cover-wrap > :global(*) { transition: scale 300ms var(--ease-out); }
+    .work-card:hover .cover-wrap > :global(*) { scale: 1.03; }
+    .title :global(.expand) { transition: translate 200ms var(--ease-out); }
+    .work-card:hover .title :global(.expand) { translate: 2px -2px; }
   }
   .work-card:active .cover-wrap::before { opacity: 0.08; transition-duration: var(--dur-press); }
 </style>
