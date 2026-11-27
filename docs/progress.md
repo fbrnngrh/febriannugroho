@@ -2,12 +2,20 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-08
-**Active Feature:** Easypanel GitHub Dockerfile Deployment (in progress)
+**Last Updated:** 2026-11-27
+**Active Feature:** Portfolio redesign 2026 (feat-015) on branch `redesign/portfolio-2026`, not pushed
 
 ## Status
 
 ### What's Done
+
+- [x] **Portfolio redesign 2026 (feat-015)** — 2026-11-27, branch `redesign/portfolio-2026` (local only)
+  - Handoff saved in `docs/redesign-handoff/` (Figma M4H1HkuEiWyZTToDQ6Iml2, page Hi-fi).
+  - Dependencies updated; SvelteKit 3 migration (`sv migrate sveltekit-3`): config in `vite.config.ts`, `$lib` → `#lib`, mdsvex 1 as a Vite plugin. TypeScript stays 6.x (Kit 3 needs the TS 6 compiler API). `web` now has a real `check-types` script.
+  - New tokens (Inter + Geist Mono, light/dark, motion), layout (skip link, nav, Explore menu, floating profile, page cross-fade), Home (hero, video stage, Selected work + project dialog/sheet, About, Writing fan, Shipping in public, Tools, Contact), Writing, article with TOC, Stack with fleet map + agent cards, 404.
+  - Site copy and open decisions live in `apps/web/src/lib/content/site.ts` (`DECISIONS`).
+  - Reviewed with better-interface / better-accessibility / break-ui and improve-animations / gestures; findings applied (commit ac7eb01).
+  - QA: 6 widths × 6 routes without horizontal scroll, one `<main>` and one `<h1>` each; light/dark and 390/1440 checked in the browser.
 
 - [x] **Motion Design & Micro-interactions (feat-014)** — 2026-07-08
   - Added motion foundation: `inview` Intersection Observer action, extended `motion.ts` tokens/helpers, and shared CSS utilities (`scroll-reveal`, `press-feedback`, `icon-hover-lift`, `input-focus-line`, `pop-in`).
@@ -126,6 +134,8 @@
 
 ## Blockers / Risks
 
+- Redesign waits on Febrian: theme toggle (kept), /blog vs /writing (kept /blog), /contact (kept), stage scene language (English proposal, flagged), old 2025 posts (kept, `legacy: true`), font package (Google Fonts link for now).
+- Not verified: real-phone gestures (sheet/fan drag at 120 Hz), VoiceOver/NVDA, forced-colors, 200% zoom, Lighthouse, `docker build`.
 - mdsvex + SvelteKit 5 compatibility — needs `bun run -F web check` verification
 - Prerendering of `[slug]` route depends on `entries()` function working correctly
 
