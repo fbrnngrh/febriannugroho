@@ -30,9 +30,7 @@
 
   let dialog = $state<ProjectDialog>();
 
-  const FAN_ORDER = ["redesigning-this-site-with-claude", "from-manual-pulls-to-ci-cd", "how-my-agent-fleet-ships-code"];
   const posts = allPosts();
-  const fanPosts = FAN_ORDER.map((slug) => posts.find((p) => p.slug === slug)).filter((p) => p !== undefined);
 
   const ciPost = getPost("from-manual-pulls-to-ci-cd")?.metadata;
 
@@ -121,11 +119,11 @@
     </dl>
   </section>
 
-  {#if fanPosts.length > 0}
+  {#if posts.length > 0}
     <section class="writing" aria-labelledby="writing-h">
       <h2 id="writing-h" class="label-mono col-text" data-reveal use:inview>Writing</h2>
-      <!-- phones: the stacked fan; wider screens: a Molly-style row of every post -->
-      <div class="col-wide phone-only"><WritingFan posts={fanPosts} /></div>
+      <!-- phones: a swipeable deck of every post; wider screens: a Molly-style row of every post -->
+      <div class="col-wide phone-only"><WritingFan {posts} /></div>
       <div class="wide-only"><WritingRow {posts} /></div>
       <div class="col-text writing-foot">
         <p class="body-text muted">{WRITING_INTRO}</p>
