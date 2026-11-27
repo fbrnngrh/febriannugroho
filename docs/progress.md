@@ -16,6 +16,7 @@
   - Site copy and open decisions live in `apps/web/src/lib/content/site.ts` (`DECISIONS`).
   - Reviewed with better-interface / better-accessibility / break-ui and improve-animations / gestures; findings applied (commit ac7eb01).
   - QA: 6 widths × 6 routes without horizontal scroll, one `<main>` and one `<h1>` each; light/dark and 390/1440 checked in the browser.
+  - Independent review + manual E2E (2026-11-27, agent-browser on `vite build` + preview, and the podman image): nginx served no `.html` routes (/stack, /blog, posts 404'd on direct load) and had no site 404; home bundle shipped the whole contributions JSON (202 kB → 35 kB); profile close lost focus; phone agent sheet ignored back/backdrop; a11y/reduced-motion polish. Fixed in fa52518, 6512a89, 59192e9, 3cdf79c. Still open: canonical/og tags and sitemap (need the site domain), large PNG covers of the 2025 posts, empty `<header>` on desktop Home, stage `background-color` / fleet `box-shadow` transitions, Email me two-step flight timing, Playwright suite (needs `@playwright/test` approval).
 
 - [x] **Motion Design & Micro-interactions (feat-014)** — 2026-07-08
   - Added motion foundation: `inview` Intersection Observer action, extended `motion.ts` tokens/helpers, and shared CSS utilities (`scroll-reveal`, `press-feedback`, `icon-hover-lift`, `input-focus-line`, `pop-in`).
