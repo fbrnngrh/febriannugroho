@@ -1,14 +1,32 @@
 <script lang="ts" module>
-  /** Cover tint per first tag; shared with the phone fan. */
-  export const COVER_TINT: Record<string, string> = {
-    Shipping: "var(--ci-subtle)",
-    Agents: "var(--fleet-subtle)",
-    Design: "var(--blue-subtle)",
+  import type { PostSummary } from "#lib/content/posts.ts";
+
+  const tokens = (name: string) => ({ bg: `var(--cover-${name}-bg)`, accent: `var(--cover-${name}-accent)` });
+
+  /** Card colour and illustration accent per post (adjacent posts never share a hue); shared with the phone fan. */
+  export const COVERS: Record<string, { bg: string; accent: string }> = {
+    "how-my-agent-fleet-ships-code": tokens("fleet"),
+    "redesigning-this-site-with-claude": tokens("redesign"),
+    "from-manual-pulls-to-ci-cd": tokens("cicd"),
+    "building-a-saas-with-nextjs-16": tokens("saas"),
+    "a-practical-guide-to-react-19-actions": tokens("react"),
+    "mastering-tailwind-css-v4-with-oklch": tokens("oklch"),
   };
+  const TAG_COVERS: Record<string, { bg: string; accent: string }> = {
+    Shipping: COVERS["from-manual-pulls-to-ci-cd"]!,
+    Agents: COVERS["how-my-agent-fleet-ships-code"]!,
+    Design: COVERS["redesigning-this-site-with-claude"]!,
+  };
+
+  /** Unknown slugs fall back to their first tag, then to the grey cover. */
+  export function coverOf(post: PostSummary) {
+    return COVERS[post.slug] ?? TAG_COVERS[post.tags[0] ?? ""] ?? { bg: "var(--surface-cover)", accent: "var(--fg-default)" };
+  }
+
+  export const finePointer = () => matchMedia("(hover: hover) and (pointer: fine)").matches;
 </script>
 
 <script lang="ts">
-  import type { PostSummary } from "#lib/content/posts.ts";
   import { formatDate, postHref } from "#lib/content/posts.ts";
   import { inview } from "#lib/actions/inview.ts";
   import CoverArt from "./CoverArt.svelte";
@@ -16,13 +34,50 @@
   // Writing on tablets and desktops: a row of tall cards like Molly's thesis row, starting on the text
   // column and running past the right edge. The stacked fan (WritingFan) is the phone layout only.
   let { posts }: { posts: PostSummary[] } = $props();
+
+  // Each cover plays once when its card is half in view, then again on hover or keyboard focus.
+  let plays = $state<Record<string, number>>({});
+  let delays = $state<Record<string, number>>({});
+  // cards entering together start in a wave after the row's own reveal, gaps shrinking
+  const WAVE = [150, 230, 290, 330, 350, 360];
+
+  function replay(slug: string, delay = 0) {
+    delays[slug] = delay;
+    plays[slug] = (plays[slug] ?? 0) + 1;
+  }
+
+  function observe(ul: HTMLElement) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((e) => e.isIntersecting)
+          .forEach((e, i) => {
+            io.unobserve(e.target);
+            const slug = (e.target as HTMLElement).dataset.slug!;
+            if (!plays[slug]) replay(slug, WAVE[Math.min(i, WAVE.length - 1)]);
+          });
+      },
+      { threshold: 0.5 },
+    );
+    ul.querySelectorAll("article").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }
 </script>
 
-<ul class="row" aria-label="Writing" data-reveal use:inview>
+<ul class="row" aria-label="Writing" data-reveal use:inview {@attach observe}>
   {#each posts as post (post.slug)}
+    {@const cover = coverOf(post)}
     <li>
-      <article class="card" style:--tint={COVER_TINT[post.tags[0] ?? ""] ?? "var(--surface-cover)"}>
-        <div class="art"><CoverArt kind={post.tags[0] ?? ""} slug={post.slug} /></div>
+      <article
+        class="card"
+        data-slug={post.slug}
+        style:--cover-bg={cover.bg}
+        style:--cover-accent={cover.accent}
+        style:--play-delay="{delays[post.slug] ?? 0}ms"
+        onpointerenter={(e) => e.pointerType === "mouse" && finePointer() && replay(post.slug)}
+        onfocusin={(e) => (e.target as Element).matches(":focus-visible") && replay(post.slug)}
+      >
+        <div class="art"><CoverArt kind={post.tags[0] ?? ""} slug={post.slug} play={plays[post.slug] ?? 0} /></div>
         <div class="text">
           <h3 class="title">
             {#if post.planned}
@@ -62,7 +117,7 @@
     height: 400px;
     border: 1px solid transparent;
     border-radius: var(--radius-card);
-    background: var(--tint);
+    background: var(--cover-bg);
     box-shadow: var(--shadow-ring-1);
     overflow: hidden;
     transition: box-shadow 200ms var(--ease-out);

@@ -38,6 +38,14 @@
   --anti-subtle: #eef2fb;
   --orange-text: #9d4616; --orange-muted: #fed8c7;
 
+  /* Writing covers, one hue per post (bg: OKLCH L 0.96; accent: L ~0.56, >= 3:1 on its bg) */
+  --cover-fleet-bg: var(--fleet-subtle); --cover-fleet-accent: var(--fleet-solid);
+  --cover-redesign-bg: var(--blue-subtle); --cover-redesign-accent: var(--blue-solid);
+  --cover-cicd-bg: var(--ci-subtle); --cover-cicd-accent: var(--ci-solid);
+  --cover-saas-bg: #ffeee5; --cover-saas-accent: #b4561a;
+  --cover-react-bg: #e3f6f8; --cover-react-accent: #1c8292;
+  --cover-oklch-bg: #feedf1; --cover-oklch-accent: #be3d70;
+
   --glow-dealer: #9dc7fe; --glow-ci: #a7e8bd; --glow-fleet: #c9b8fb; --glow-sales: #ffc9a0;
   --glow-opacity: 0.35;
 
@@ -135,6 +143,14 @@
   --blue-muted: #1a3352; --blue-glow: #1f416b;
   --anti-subtle: #16213a;
   --orange-text: #f0a27a; --orange-muted: #3d2216;
+
+  /* bg: OKLCH L 0.25; accent: L 0.70, one even step so all six read alike, >= 5:1 */
+  --cover-fleet-accent: #a58bec;
+  --cover-redesign-accent: #64a1ee;
+  --cover-cicd-accent: #4cb86a;
+  --cover-saas-bg: #331b0d; --cover-saas-accent: #de844f;
+  --cover-react-bg: #04272c; --cover-react-accent: #30b1c4;
+  --cover-oklch-bg: #351621; --cover-oklch-accent: #e7729b;
 
   --glow-dealer: #2e6bd9; --glow-ci: #1f9d5a; --glow-fleet: #7a5af0; --glow-sales: #e07a2e;
   --glow-opacity: 0.16;

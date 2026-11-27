@@ -5,7 +5,7 @@
   import { inview } from "#lib/actions/inview.ts";
   import Icon from "../Icon.svelte";
   import CoverArt from "./CoverArt.svelte";
-  import { COVER_TINT } from "./WritingRow.svelte";
+  import { coverOf, finePointer } from "./WritingRow.svelte";
 
   // Writing fan C1 (Figma 241:16652, notes 216:17059, motion 04-motion.md §7). Phones only; wider screens use WritingRow.
   let { posts }: { posts: PostSummary[] } = $props();
@@ -15,10 +15,45 @@
   let fanEl = $state<HTMLElement>();
   const n = $derived(posts.length);
 
+  // Only the front cover plays: once when the fan is half in view, once per card the first time it comes to the
+  // front (after the 500 ms fan spring has mostly landed), and again on hover or keyboard focus.
+  let plays = $state<Record<string, number>>({});
+  let delays = $state<Record<string, number>>({});
+  let seen = false;
+  // bookkeeping only, nothing renders from it
+  const played = new Set<string>();
+
+  function replay(slug: string, delay = 0) {
+    delays[slug] = delay;
+    plays[slug] = (plays[slug] ?? 0) + 1;
+  }
+
+  function autoplay(delay: number) {
+    const slug = posts[active]?.slug;
+    if (!seen || !slug || played.has(slug)) return;
+    played.add(slug);
+    replay(slug, delay);
+  }
+
+  function observe(stack: HTMLElement) {
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e?.isIntersecting) return;
+        io.disconnect();
+        seen = true;
+        autoplay(150);
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(stack);
+    return () => io.disconnect();
+  }
+
 
   function go(i: number, fromSwipe = false) {
     released = fromSwipe;
     active = (i + n) % n;
+    autoplay(200);
   }
 
   // slot 0 = front, 1 = right (next), n-1 = left (previous)
@@ -95,16 +130,19 @@
     return () => el.removeEventListener("keydown", onkeydown);
   }}
 >
-  <div class="stack">
+  <div class="stack" {@attach observe}>
     {#each posts as post, i (post.slug)}
       {@const s = slot(i)}
       {@const pos = s === 0 ? "front" : s === 1 ? "right" : "left"}
+      {@const cover = coverOf(post)}
       <div class="slot" data-pos={pos} data-reveal use:inview style:--reveal-delay={pos === "front" ? "0ms" : "60ms"}>
       <article
         class="post-card"
         class:released
         data-pos={pos}
-        style:--tint={COVER_TINT[post.tags[0] ?? ""] ?? "var(--surface-cover)"}
+        style:--cover-bg={cover.bg}
+        style:--cover-accent={cover.accent}
+        style:--play-delay="{delays[post.slug] ?? 0}ms"
         inert={pos !== "front"}
         aria-hidden={pos !== "front"}
         onpointerdown={pos === "front" ? down : undefined}
@@ -112,8 +150,10 @@
         onpointerup={pos === "front" ? up : undefined}
         onpointercancel={pos === "front" ? up : undefined}
         onclickcapture={pos === "front" ? onclickcapture : undefined}
+        onpointerenter={pos === "front" ? (e) => e.pointerType === "mouse" && finePointer() && replay(post.slug) : undefined}
+        onfocusin={pos === "front" ? (e) => (e.target as Element).matches(":focus-visible") && replay(post.slug) : undefined}
       >
-        <div class="art"><CoverArt kind={post.tags[0] ?? ""} slug={post.slug} /></div>
+        <div class="art"><CoverArt kind={post.tags[0] ?? ""} slug={post.slug} play={plays[post.slug] ?? 0} /></div>
         <div class="text">
           <h3 class="title">
             {#if post.planned}
@@ -170,7 +210,7 @@
     height: 370px;
     border: 1px solid transparent;
     border-radius: var(--radius-card);
-    background: var(--tint);
+    background: var(--cover-bg);
     box-shadow: var(--shadow-post-card);
     overflow: hidden;
     touch-action: pan-y;
