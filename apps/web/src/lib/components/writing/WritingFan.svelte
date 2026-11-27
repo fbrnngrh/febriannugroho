@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { flushSync, tick } from "svelte";
   import type { PostSummary } from "#lib/content/posts.ts";
   import { formatDate, postHref } from "#lib/content/posts.ts";
   import { inview } from "#lib/actions/inview.ts";
@@ -8,19 +8,23 @@
   import CoverArt from "./CoverArt.svelte";
   import { coverOf, finePointer } from "./WritingRow.svelte";
 
-  // Writing on phones: a deck. The front card sits in the middle, the next ones peek behind it on the right,
-  // read ones are thrown onto a pile on the left. Wider screens use WritingRow.
+  // Writing on phones: a looping deck. The front card sits in the middle, the next ones peek behind it on the right,
+  // thrown ones (to either side) settle on a pile on the left. Wider screens use WritingRow.
   let { posts }: { posts: PostSummary[] } = $props();
 
   let active = $state(0);
-  // the index the deck is moving away from (settle) or towards (drag); keeps the moving card above its pile
-  let from = $state<number | null>(null);
+  // the card on its way in or out (drag, throw, settle) rides above both piles
+  let lift = $state<number | null>(null);
   let released = $state(false);
   let fanEl = $state<HTMLElement>();
   let stackEl = $state<HTMLElement>();
   const n = $derived(posts.length);
+  const mod = (i: number) => ((i % n) + n) % n;
+  // the loop: d runs from −L (bottom of the left pile) to n−1−L (back of the right peek)
+  const L = $derived(Math.floor((n - 1) / 2));
+  const dist = (i: number, a = active) => mod(i - a + L) - L;
 
-  // Pose per distance from the front (d = index − active). x = k × card width + px.
+  // Pose per distance from the front (d = dist(index)). x = k × card width + px.
   // Left pile (d < 0) rests over the deck, so a thrown card stays on top; ±4 is the hidden end of the window.
   type Pose = { k: number; px: number; r: number; s: number; o: number };
   const POSES: Pose[] = [
@@ -46,6 +50,7 @@
   const DIST = 0.35; // of the card width
   const FLICK = 0.11; // px/ms, average over the drag (Sonner)
   const RUBBER = 0.2;
+  const FLY = 280; // ms: a card thrown right leaves the screen, then tucks onto the left pile
 
   // Only the front cover plays: once when the deck is half in view, once per card the first time it comes to the
   // front, and again on hover or keyboard focus. Covers that have not been at the front yet are armed (reset to
@@ -95,21 +100,58 @@
     return () => io.disconnect();
   }
 
+  const cards = () => [...(stackEl?.querySelectorAll<HTMLElement>(".post-card") ?? [])];
+
+  // A card crossing the loop's seam (pile bottom ↔ peek back, or a right throw landing on the pile) would sweep
+  // across the front: it jumps there unseen and fades in. Same strings Svelte renders, so its next write is a no-op.
+  function tuck(el: HTMLElement, d: number) {
+    el.style.transition = "none";
+    el.style.transform = restTransform(d);
+    el.style.opacity = "0";
+    void el.offsetWidth;
+    el.style.transition = "";
+    el.style.opacity = String(poseAt(d).o);
+  }
+
+  let flying: { el: HTMLElement; i: number; t: ReturnType<typeof setTimeout> } | null = null;
+  function land() {
+    if (!flying) return;
+    clearTimeout(flying.t);
+    const { el, i } = flying;
+    flying = null;
+    el.removeEventListener("transitionend", landed);
+    tuck(el, dist(i));
+  }
+  // lands when the flight ends, not on a clock: a slow frame (or a slowed-down replay) never cuts it short
+  const landed = (e: TransitionEvent) => e.target === flying?.el && e.propertyName === "transform" && land();
+
   let settle: ReturnType<typeof setTimeout> | undefined;
-  function go(i: number, fromSwipe = false) {
-    if (i < 0 || i >= n || i === active) return;
+  // step: +1 next (both throws), −1 previous; `right` is the card element thrown to the right
+  function go(step: 1 | -1, fromSwipe = false, right?: HTMLElement) {
+    if (n < 2) return;
+    land();
+    const old = active;
     released = fromSwipe;
-    from = active;
-    active = i;
+    active = mod(old + step);
+    lift = step > 0 ? old : active;
+    const all = cards();
+    for (let i = 0; i < n; i++) if (dist(i) !== dist(i, old) - step && all[i] !== right) tuck(all[i]!, dist(i));
+    if (right) {
+      // Svelte writes the card's pile pose on its next flush: write the flight after it
+      flushSync();
+      right.style.transition = `transform ${FLY}ms var(--ease-out)`;
+      right.style.transform = `translate(${stackEl!.clientWidth / 2 + right.offsetWidth * 0.7}px, 0) rotate(${-POSES[0]!.r}deg) scale(${POSES[0]!.s})`;
+      // fallback in case the transition never runs (tab hidden mid-flight)
+      flying = { el: right, i: old, t: setTimeout(land, FLY * 12) };
+      right.addEventListener("transitionend", landed);
+    }
     settleSoon();
     autoplay(200);
   }
   function settleSoon() {
     clearTimeout(settle);
-    settle = setTimeout(() => (from = null), 600);
+    settle = setTimeout(() => (lift = null), 600);
   }
-
-  const cards = () => [...(stackEl?.querySelectorAll<HTMLElement>(".post-card") ?? [])];
 
   // Cards follow the finger 1:1: transforms written on each card in the window, no Svelte state per move.
   type Drag = {
@@ -134,16 +176,21 @@
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, seed: 0, dx: 0, lastX: e.clientX, lastT: e.timeStamp, dir: 0, w: 0, all: [] };
   }
 
+  // cards near the front: the ones a drag paints and a release hands back
+  const near = (all: HTMLElement[]) => all.filter((_, i) => Math.abs(dist(i)) <= 5);
+
   function lock(e: PointerEvent) {
     if (!drag || !stackEl) return;
     stackEl.setPointerCapture(drag.id);
+    land();
     const all = (drag.all = cards());
     const front = all[active]!;
     // a card pulled back from the pile and caught mid-flight stays where it is instead of snapping back to rest
     drag.seed = Math.min(0, new DOMMatrix(getComputedStyle(front).transform).m41);
     drag.w = front.offsetWidth;
-    for (let i = Math.max(0, active - 5); i <= Math.min(n - 1, active + 5); i++) all[i]!.style.transition = "none";
+    for (const el of near(all)) el.style.transition = "none";
     drag.x = drag.lastX = e.clientX;
+    lift = active;
   }
 
   function move(e: PointerEvent) {
@@ -160,31 +207,33 @@
     drag.lastX = e.clientX;
     drag.dx = e.clientX - drag.x + drag.seed;
     drag.lastT = e.timeStamp;
-    // past the ends too, so the front card rubber-bands over the left pile, not under it
-    const side = drag.dx < 0 ? active + 1 : active - 1;
-    if (from !== side) from = side;
     paint(drag.all, drag.dx, drag.w);
   }
 
+  // Either way the deck advances by the drag's progress; the front card follows the finger, tilting toward it.
   function paint(all: HTMLElement[], dx: number, w: number) {
-    let f = -dx / w;
+    let f = Math.abs(dx) / w;
     let rubber = 0;
-    // no card past the end: the front card gives a little and stops
-    if ((f > 0 && active === n - 1) || (f < 0 && active === 0)) {
+    // a single card has nowhere to go: it gives a little and stops
+    if (n < 2) {
       rubber = dx * RUBBER;
       f = 0;
-    } else if (Math.abs(f) > 1) f = Math.sign(f) * (1 + (Math.abs(f) - 1) * RUBBER);
+    } else if (f > 1) f = 1 + (f - 1) * RUBBER;
     const reduce = prefersReducedMotion();
-    for (let i = Math.max(0, active - 5); i <= Math.min(n - 1, active + 5); i++) {
-      const d = Math.max(-4, Math.min(4, i - active - f));
+    for (let i = 0; i < n; i++) {
+      const d0 = dist(i);
+      if (Math.abs(d0) > 5) continue;
+      const d = Math.max(-4, Math.min(4, d0 - f));
       const lo = Math.floor(d);
       const t = d - lo;
       const a = poseAt(lo);
       const b = poseAt(lo + 1);
       const mix = (p: number, q: number) => p + (q - p) * t;
-      const x = mix(a.k * w + a.px, b.k * w + b.px) + (i === active ? rubber : 0);
+      // thrown right, the front card takes the mirror image of its path to the left pile
+      const m = d0 === 0 && dx > 0 ? -1 : 1;
+      const x = m * mix(a.k * w + a.px, b.k * w + b.px) + (d0 === 0 ? rubber : 0);
       // reduced motion: the card slides with the finger but does not tilt
-      const r = reduce ? poseAt(Math.round(d)).r : mix(a.r, b.r);
+      const r = m * (reduce ? poseAt(Math.round(d)).r : mix(a.r, b.r));
       all[i]!.style.transform = `translate(${x}px, 0) rotate(${r}deg) scale(${mix(a.s, b.s)})`;
       all[i]!.style.opacity = String(mix(a.o, b.o));
     }
@@ -198,20 +247,22 @@
     swallow = true;
     // a finger held still before lifting is not a flick
     const flick = e.timeStamp - lastT < 100 && Math.abs(dx) > 12 && Math.abs(dx) / (e.timeStamp - t) > FLICK;
-    const cancel = e.type === "pointercancel";
-    const before = active;
-    if (!cancel && dx < 0 && (dx < -w * DIST || (flick && dir < 0))) go(active + 1, true);
-    else if (!cancel && dx > 0 && (dx > w * DIST || (flick && dir > 0))) go(active - 1, true);
+    const side = Math.sign(dx);
+    const thrown = e.type !== "pointercancel" && side !== 0 && (Math.abs(dx) > w * DIST || (flick && dir === side));
+    const front = all[active]!;
+    const hand = near(all);
+    // hand the cards back to CSS: same strings Svelte renders, so a spring-back also gets its transition
+    for (const el of hand) el.style.transition = "";
+    if (thrown) go(1, true, side > 0 && !prefersReducedMotion() ? front : undefined);
     else {
       released = true;
       settleSoon();
     }
-    // hand the cards back to CSS: same strings Svelte renders, so a spring-back also gets its transition
-    for (let i = Math.max(0, before - 5); i <= Math.min(n - 1, before + 5); i++) {
-      const el = all[i]!;
-      el.style.transition = "";
-      el.style.transform = restTransform(i - active);
-      el.style.opacity = String(poseAt(i - active).o);
+    for (const el of hand) {
+      if (el === flying?.el) continue;
+      const d = dist(all.indexOf(el));
+      el.style.transform = restTransform(d);
+      el.style.opacity = String(poseAt(d).o);
     }
   }
 
@@ -227,14 +278,14 @@
     const front = cards()[active];
     if (!front || front.contains(e.target as Node)) return;
     const r = front.getBoundingClientRect();
-    go(e.clientX < r.left + r.width / 2 ? active - 1 : active + 1);
+    go(e.clientX < r.left + r.width / 2 ? -1 : 1);
   }
 
   async function onkeydown(e: KeyboardEvent) {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
     const inCard = (e.target as HTMLElement).closest(".post-card");
-    go(active + (e.key === "ArrowRight" ? 1 : -1));
+    go(e.key === "ArrowRight" ? 1 : -1);
     // the old front card turns inert: keep focus on the new front card's link
     if (inCard) {
       await tick();
@@ -270,13 +321,13 @@
     {onclick}
   >
     {#each posts as post, i (post.slug)}
-      {@const d = i - active}
+      {@const d = dist(i)}
       {@const cover = coverOf(post)}
       <div
         class="slot"
         data-reveal
         use:inview
-        style:z-index={Math.max(zOf(d), zOf(i - (from ?? active)))}
+        style:z-index={i === lift && d <= 0 ? 120 : zOf(d)}
         style:--reveal-delay={d === 0 ? "0ms" : "60ms"}
       >
         <article
@@ -314,8 +365,7 @@
       type="button"
       class="icon-button nav"
       aria-label="Previous post"
-      aria-disabled={active === 0}
-      onclick={() => go(active - 1)}
+      onclick={() => go(-1)}
     >
       <Icon name="arrow-left" size={14} />
     </button>
@@ -325,8 +375,7 @@
       type="button"
       class="icon-button nav"
       aria-label="Next post"
-      aria-disabled={active === n - 1}
-      onclick={() => go(active + 1)}
+      onclick={() => go(1)}
     >
       <Icon name="arrow-right" size={14} />
     </button>
