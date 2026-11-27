@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type { PostSummary } from "#lib/content/posts.ts";
   import { formatDate, postHref } from "#lib/content/posts.ts";
   import { inview } from "#lib/actions/inview.ts";
@@ -10,7 +11,7 @@
 
   let active = $state(0);
   let released = $state(false);
-  let dragX = $state(0);
+  let fanEl = $state<HTMLElement>();
   const n = $derived(posts.length);
 
   const COVER_TINT: Record<string, string> = {
@@ -22,7 +23,6 @@
   function go(i: number, fromSwipe = false) {
     released = fromSwipe;
     active = (i + n) % n;
-    dragX = 0;
   }
 
   // slot 0 = front, 1 = right (next), n-1 = left (previous)
@@ -30,48 +30,60 @@
     return (i - active + n) % n;
   }
 
-  let drag: { x: number; t: number; lastX: number; v: number; id: number; width: number } | null = null;
+  // The front card follows the finger 1:1: transform written on the element, no easing, no Svelte state per move.
+  let drag: { x: number; dx: number; t: number; lastX: number; v: number; id: number; width: number; el: HTMLElement } | null =
+    null;
+  let swallow = false;
 
   function down(e: PointerEvent) {
     if (e.button !== 0 && e.pointerType === "mouse") return;
-    const card = e.currentTarget as HTMLElement;
-    drag = { x: e.clientX, lastX: e.clientX, t: e.timeStamp, v: 0, id: e.pointerId, width: card.offsetWidth };
+    const el = e.currentTarget as HTMLElement;
+    swallow = false;
+    el.style.transition = "none";
+    drag = { x: e.clientX, dx: 0, lastX: e.clientX, t: e.timeStamp, v: 0, id: e.pointerId, width: el.offsetWidth, el };
   }
   function move(e: PointerEvent) {
     if (!drag || e.pointerId !== drag.id) return;
-    const dx = e.clientX - drag.x;
-    if (Math.abs(dx) > 6) (e.currentTarget as HTMLElement).setPointerCapture(drag.id);
+    drag.dx = e.clientX - drag.x;
+    if (Math.abs(drag.dx) > 6 && !drag.el.hasPointerCapture(drag.id)) drag.el.setPointerCapture(drag.id);
     const dt = e.timeStamp - drag.t;
     if (dt > 0) drag.v = ((e.clientX - drag.lastX) / dt) * 1000;
     drag.lastX = e.clientX;
     drag.t = e.timeStamp;
-    released = false;
-    dragX = dx;
+    drag.el.style.translate = `${drag.dx}px 0`;
   }
   function up(e: PointerEvent) {
     if (!drag || e.pointerId !== drag.id) return;
-    const { width, v } = drag;
-    const dx = dragX;
+    const { el, dx, width } = drag;
+    // finger held still before lifting = no fling
+    const v = e.timeStamp - drag.t > 80 ? 0 : drag.v;
     drag = null;
-    if (Math.abs(dx) > 6) {
-      (e.currentTarget as HTMLElement).addEventListener("click", (ev) => ev.preventDefault(), { capture: true, once: true });
-    }
+    swallow = Math.abs(dx) > 6;
+    el.style.transition = "";
+    el.style.translate = "";
     // swipe left = next, swipe right = previous
-    if (dx < -width * 0.3 || v < -500) go(active + 1, true);
-    else if (dx > width * 0.3 || v > 500) go(active - 1, true);
-    else {
-      released = true;
-      dragX = 0;
-    }
+    if (e.type !== "pointercancel" && (dx < -width * 0.3 || v < -500)) go(active + 1, true);
+    else if (e.type !== "pointercancel" && (dx > width * 0.3 || v > 500)) go(active - 1, true);
+    else released = true;
+  }
+  function onclickcapture(e: MouseEvent) {
+    if (!swallow) return;
+    swallow = false;
+    e.preventDefault();
   }
 
-  function onkeydown(e: KeyboardEvent) {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      go(active + 1);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      go(active - 1);
+  async function onkeydown(e: KeyboardEvent) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const inCard = (e.target as HTMLElement).closest(".post-card");
+    go(active + (e.key === "ArrowRight" ? 1 : -1));
+    // the old front card turns inert: keep focus on the new front card's link
+    if (inCard) {
+      await tick();
+      (
+        fanEl?.querySelector<HTMLElement>('.post-card[data-pos="front"] a') ??
+        fanEl?.querySelector<HTMLElement>('[aria-label="Next post"]')
+      )?.focus();
     }
   }
 </script>
@@ -81,6 +93,7 @@
   role="group"
   aria-roledescription="carousel"
   aria-label="Writing"
+  bind:this={fanEl}
   {@attach (el) => {
     el.addEventListener("keydown", onkeydown);
     return () => el.removeEventListener("keydown", onkeydown);
@@ -95,7 +108,6 @@
         class="post-card"
         class:released
         data-pos={pos}
-        style:--drag={pos === "front" ? `${dragX}px` : "0px"}
         style:--tint={COVER_TINT[post.tags[0] ?? ""] ?? "var(--surface-cover)"}
         inert={pos !== "front"}
         aria-hidden={pos !== "front"}
@@ -103,6 +115,7 @@
         onpointermove={pos === "front" ? move : undefined}
         onpointerup={pos === "front" ? up : undefined}
         onpointercancel={pos === "front" ? up : undefined}
+        onclickcapture={pos === "front" ? onclickcapture : undefined}
       >
         <div class="art"><CoverArt kind={post.tags[0] ?? ""} /></div>
         <div class="text">
@@ -171,7 +184,7 @@
   }
   .post-card.released { transition-duration: 550ms; transition-timing-function: var(--spring-fan-release); }
   /* the front card follows the finger 1:1 while dragged (no easing) */
-  .post-card[data-pos="front"] { translate: var(--drag) 0; }
+  .post-card[data-pos="front"] { translate: 0 0; }
   .post-card[data-pos="left"] { translate: calc(var(--w) * -0.86) 14px; rotate: -6deg; scale: 0.96; }
   .post-card[data-pos="right"] { translate: calc(var(--w) * 0.86) 14px; rotate: 6deg; scale: 0.96; }
   .post-card::before {
@@ -185,14 +198,19 @@
     pointer-events: none;
     transition: opacity var(--dur-card) var(--ease-out);
   }
-  .post-card[data-pos="front"]:active::before { opacity: 0.08; transition-duration: var(--dur-press); }
+  .post-card[data-pos="front"]:has(a):active::before { opacity: 0.08; transition-duration: var(--dur-press); }
   @media (hover: hover) and (pointer: fine) {
-    .post-card[data-pos="front"]:hover { box-shadow: var(--shadow-hover-card); }
-    .post-card[data-pos="front"]:hover::before { opacity: 0.04; }
+    .post-card[data-pos="front"]:has(a):hover { box-shadow: var(--shadow-hover-card); }
+    .post-card[data-pos="front"]:has(a):hover::before { opacity: 0.04; }
   }
   .art { flex: 1; padding: 24px 28px 8px; min-height: 0; }
   .text { display: grid; gap: 4px; padding: 0 22px 22px; }
   .title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
     margin: 0 0 8px;
     font-size: 22px;
     font-weight: 600;
@@ -242,5 +260,7 @@
   @media (prefers-reduced-motion: reduce) {
     .post-card, .post-card.released { transition: opacity 200ms ease-out, box-shadow var(--dur-card) ease-out; }
     .dot span { transition: background-color 200ms ease-out; }
+    .post-card[data-pos="front"] { animation: fan-fade 200ms ease-out; }
+    @keyframes fan-fade { from { opacity: 0; } }
   }
 </style>

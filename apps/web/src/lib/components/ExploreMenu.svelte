@@ -32,7 +32,12 @@
     if (hash && onHome) {
       await closeOverlay("explore");
       const el = document.getElementById(hash);
-      if (el) setTimeout(() => scrollToElement(el), 160);
+      if (el)
+        setTimeout(() => {
+          scrollToElement(el);
+          el.tabIndex = -1;
+          el.focus({ preventScroll: true });
+        }, 160);
       return;
     }
     // replace the shallow "menu open" entry so back doesn't land on a closed-menu duplicate

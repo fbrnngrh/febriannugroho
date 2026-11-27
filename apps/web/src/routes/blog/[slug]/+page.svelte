@@ -39,7 +39,14 @@
       if (cancelled || !prose) return;
       const headings = [...prose.querySelectorAll<HTMLHeadingElement>("h2")];
       toc = headings.map((h) => {
-        h.id ||= slugify(h.textContent ?? "");
+        if (!h.id) {
+          // unique and never empty (duplicate or non-Latin headings)
+          const base = slugify(h.textContent ?? "") || "section";
+          let id = base;
+          let k = 1;
+          while (document.getElementById(id)) id = `${base}-${++k}`;
+          h.id = id;
+        }
         return { id: h.id, text: h.textContent ?? "" };
       });
       // mark the H2 being read
@@ -53,6 +60,8 @@
 
       prose.querySelectorAll("pre").forEach((pre) => {
         const code = pre.querySelector("code")?.innerText ?? pre.innerText;
+        pre.tabIndex = 0;
+        pre.setAttribute("aria-label", "Code sample");
         const slot = document.createElement("div");
         slot.className = "copy-slot";
         pre.prepend(slot);

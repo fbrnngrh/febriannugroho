@@ -18,7 +18,7 @@
   }
 
   function page(dir: 1 | -1) {
-    if (!track) return;
+    if (!track || (dir < 0 && atStart) || (dir > 0 && atEnd)) return;
     const card = track.querySelector("li");
     const step = card ? card.getBoundingClientRect().width + 16 : track.clientWidth * 0.8;
     track.scrollBy({ left: dir * step, behavior: prefersReducedMotion() ? "auto" : "smooth" });
@@ -51,18 +51,18 @@
 
 <div class="work">
   <div class="label-row col-text">
-    <p class="label-mono">Selected work <span class="hint">drag for more</span></p>
+    <h2 class="label-mono">Selected work <span class="hint">drag for more</span></h2>
     <div class="arrows">
-      <button type="button" class="icon-button" aria-label="Previous project" disabled={atStart} onclick={() => page(-1)}>
+      <button type="button" class="icon-button" aria-label="Previous project" aria-disabled={atStart} onclick={() => page(-1)}>
         <Icon name="arrow-left" size={14} />
       </button>
-      <button type="button" class="icon-button" aria-label="Next project" disabled={atEnd} onclick={() => page(1)}>
+      <button type="button" class="icon-button" aria-label="Next project" aria-disabled={atEnd} onclick={() => page(1)}>
         <Icon name="arrow-right" size={14} />
       </button>
     </div>
   </div>
 
-  <div class="viewport">
+  <div class="viewport" class:at-end={atEnd}>
     <ul
       class="track"
       bind:this={track}
@@ -106,7 +106,7 @@
     justify-content: space-between;
     margin-bottom: 16px;
   }
-  .label-row p { margin: 0; }
+  .label-row h2 { margin: 0; font-weight: 400; }
   .hint { margin-left: 12px; }
   .arrows { display: flex; gap: 12px; }
 
@@ -123,7 +123,9 @@
     width: 96px;
     background: linear-gradient(to right, transparent, var(--bg-page));
     pointer-events: none;
+    transition: opacity var(--dur-card) var(--ease-out);
   }
+  .viewport.at-end::after { opacity: 0; }
   .track {
     display: flex;
     gap: 16px;

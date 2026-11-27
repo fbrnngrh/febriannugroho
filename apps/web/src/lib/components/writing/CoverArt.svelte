@@ -12,7 +12,7 @@
     <path d="M58 72h12M84 72h8M106 72h8M128 72h8" />
     {#each [70, 92, 114] as x (x)}<rect x={x} y="65" width="14" height="14" rx="4" fill="var(--surface-default)" />{/each}
     <circle cx="148" cy="72" r="10" fill="var(--ci-solid)" stroke="none" />
-    <path d="m143 72 3.5 3.5 6.5-7" stroke="#fff" stroke-width="2" />
+    <path d="m143 72 3.5 3.5 6.5-7" stroke="var(--fg-on-solid)" stroke-width="2" />
   {:else if k === "Agents"}
     <circle cx="100" cy="62" r="46" stroke-dasharray="1 5" opacity="0.6" />
     <circle cx="100" cy="62" r="28" stroke-dasharray="1 5" opacity="0.6" />

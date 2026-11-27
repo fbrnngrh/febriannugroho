@@ -24,7 +24,7 @@
   }
 
   function onkeydown(e: KeyboardEvent) {
-    if (open && e.key === "Escape") close();
+    if (open && e.key === "Escape") close(!!root?.contains(document.activeElement));
   }
 
   function onpointerdown(e: PointerEvent) {
@@ -61,7 +61,7 @@
       <ul class="socials">
         {#each SOCIALS as s (s.label)}
           <li>
-            <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} class="social">{s.short}</a>
+            <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label="{s.short}, {s.label} (opens in a new tab)" class="social">{s.short}</a>
           </li>
         {/each}
       </ul>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import Icon from "./Icon.svelte";
 
   // Hover/focus preview (Figma 26:1171). Stays open while the pointer is on it, Esc dismisses (WCAG 1.4.13).
@@ -38,7 +39,8 @@
     }}
     onblur={() => (focus = false)}>{label}</a
   >
-  <span class="preview" {id} role="tooltip" data-open={open}>
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+  <span class="preview" {id} role="tooltip" data-open={open} onclick={() => goto(href)}>
     <span class="art" aria-hidden="true"><span></span><span></span><span></span></span>
     <span class="p-title">{label}</span>
     <span class="p-meta">{meta} <Icon name="arrow-right" size={12} /></span>
@@ -75,6 +77,7 @@
     scale: 1;
     visibility: visible;
     pointer-events: auto;
+    cursor: pointer;
     transition: opacity 150ms var(--ease-out), scale 150ms var(--ease-out), visibility 0s;
   }
   .art {

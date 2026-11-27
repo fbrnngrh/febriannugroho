@@ -27,13 +27,14 @@
   let focusedWithin = $state(false);
   let tabHidden = $state(false);
   let reduced = $state(false);
+  let paused = $state(false);
   let openAgent = $state<AgentId | null>(null);
   let map = $state<HTMLElement>();
   let card = $state<HTMLDialogElement>();
   let trigger: HTMLElement | null = null;
   let cardPos = $state({ top: 0, left: 0, side: "right" as "right" | "left" });
 
-  const running = $derived(visible && !hovering && !focusedWithin && !tabHidden && !reduced && !openAgent);
+  const running = $derived(visible && !paused && !hovering && !focusedWithin && !tabHidden && !reduced && !openAgent);
 
   $effect(() => {
     reduced = prefersReducedMotion();
@@ -192,6 +193,17 @@
     <p class="logos"><Logo name="docker" size={12} /><Logo name="easypanel" size={12} /></p>
   </div>
 
+  {#if !reduced}
+    <button
+      type="button"
+      class="icon-button map-pause"
+      aria-label={paused ? "Play fleet animation" : "Pause fleet animation"}
+      onclick={() => (paused = !paused)}
+    >
+      <Icon name={paused ? "play" : "pause"} size={12} />
+    </button>
+  {/if}
+
   <ul class="legend" aria-label="Legend">
     <li><span class="ln solid"></span>human gate</li>
     <li><span class="ln dashed"></span>retro: findings become new checks</li>
@@ -281,7 +293,7 @@
     font-size: 11px;
   }
   .glyph.solid { background: var(--surface-inverse); color: var(--fg-on-inverse); }
-  .glyph.green { background: var(--ci-solid); color: #fff; }
+  .glyph.green { background: var(--ci-solid); color: var(--fg-on-solid); }
   .me { border-radius: 50%; }
   .gate { border-color: var(--line-strong); }
   .lead { width: min(240px, 100%); margin: 0 auto; background: var(--fleet-subtle); }
@@ -361,11 +373,13 @@
   .p1 { top: -3px; left: 0; }
   .p2, .p3, .p4, .p5 { left: -3px; top: 0; }
   .p5 { background: var(--ci-solid); }
-  .running[data-step="1"] .p1 { animation: travel-x 320ms var(--ease-flow) both; }
-  .running[data-step="2"] .p2 { animation: travel-y 360ms var(--ease-flow) both; --len: 44px; }
-  .running[data-step="3"] .p3 { animation: travel-y 400ms var(--ease-flow) both; animation-delay: calc(var(--i) * 1ms); --len: 28px; }
-  .running[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 26px; }
-  .running[data-step="6"] .p5 { animation: travel-y 320ms var(--ease-flow) both; --len: 44px; }
+  .map[data-step="1"] .p1 { animation: travel-x 320ms var(--ease-flow) both; }
+  .map[data-step="2"] .p2 { animation: travel-y 360ms var(--ease-flow) both; --len: 44px; }
+  .map[data-step="3"] .p3 { animation: travel-y 400ms var(--ease-flow) both; animation-delay: calc(var(--i) * 1ms); --len: 28px; }
+  .map[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 26px; }
+  .map[data-step="6"] .p5 { animation: travel-y 320ms var(--ease-flow) both; --len: 44px; }
+  .map:not(.running) .packet { animation-play-state: paused; }
+  .map-pause { position: absolute; top: 12px; right: 12px; z-index: 2; }
   @keyframes travel-x {
     0% { opacity: 0; translate: 0 0; }
     15% { opacity: 1; }
@@ -436,13 +450,21 @@
       opacity: 1;
       scale: 1;
       translate: 0 100%;
-      transition: translate var(--dur-dialog-out) var(--ease-drawer), display var(--dur-dialog-out) allow-discrete,
-        overlay var(--dur-dialog-out) allow-discrete;
-      touch-action: none;
+      transition: translate var(--dur-sheet) var(--ease-drawer), display var(--dur-sheet) allow-discrete,
+        overlay var(--dur-sheet) allow-discrete;
+      max-height: calc(100dvh - 48px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
+    .grab, .c-head { touch-action: none; }
     .agent-card[open] { translate: 0 0; transition-duration: var(--dur-sheet); }
     @starting-style { .agent-card[open] { translate: 0 100%; } }
-    .agent-card::backdrop { background: rgb(0 0 0 / calc(0.4 * var(--backdrop-a, 1))); }
+    .agent-card::backdrop {
+      background: rgb(0 0 0 / calc(0.4 * var(--backdrop-a, 1)));
+      transition: background var(--dur-sheet) var(--ease-out), overlay var(--dur-sheet) allow-discrete, display var(--dur-sheet) allow-discrete;
+    }
+    @starting-style { .agent-card[open]::backdrop { background: #0000; } }
+    .agent-card:global(.dragging)::backdrop { transition: none; }
   }
   .grab { display: none; width: 36px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--line-soft); }
   @media (max-width: 767.98px) {
@@ -486,6 +508,8 @@
     .packet { display: none; }
     button.node:active { scale: 1; }
     .agent-card, .agent-card[open] { scale: 1; translate: 0 0; transition-property: opacity, display, overlay; }
+    .agent-card { opacity: 0; }
+    .agent-card[open] { opacity: 1; transition-duration: 200ms; }
     @starting-style { .agent-card[open] { opacity: 0; scale: 1; translate: 0 0; } }
   }
 </style>

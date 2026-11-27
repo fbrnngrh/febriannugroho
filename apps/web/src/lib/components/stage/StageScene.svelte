@@ -115,7 +115,7 @@
   {:else if shot === 1 || shot === 2}
     <div class="grid4">
       {#each workers as w, i (w)}
-        <div class="panel" style:--i={[0, 60, 100, 130][i]}>
+        <div class="panel" class:enter={shot === 1} style:--i={[0, 60, 100, 130][i]}>
           <div class="row"><AgentAvatar id={w} size={24} active={shot === 1} /><b>{w}</b></div>
           <p class="text">{workerTask[w]}</p>
           <span class={shot === 1 ? "pill running" : "pill pass"}>{shot === 1 ? sceneText("running") : `✓ ${sceneText("done")}`}</span>
@@ -185,7 +185,7 @@
   .open, .pass { background: var(--ci-subtle); color: var(--ci-text); }
   .merged { background: var(--stage-accent-merged); color: var(--stage-on-merged); }
   .fail { background: var(--stage-tint-fail); color: var(--stage-accent-fail); }
-  .running { background: var(--stage-tint-claude); color: var(--stage-accent-claude-text); }
+  .running { background: var(--stage-tint-claude); color: var(--orange-text); }
   .checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--fg-secondary); }
   .ok, .okline { color: var(--stage-terminal-ok); }
   .checks .ok { color: var(--ci-text); }
@@ -200,8 +200,7 @@
   .term p { margin: 0; overflow-wrap: anywhere; }
   .term .muted { color: var(--stage-terminal-muted); }
   .term.big { margin: 24px 24px 0; font-size: 14px; }
-  .err { color: var(--stage-accent-fail); }
-  :global(.dark) .err { color: #ff8e88; }
+  .err { color: var(--stage-terminal-err); }
   .review {
     display: flex;
     gap: 10px;
@@ -230,12 +229,14 @@
     background: var(--surface-default);
     box-shadow: var(--shadow-device);
     font-size: 14px;
+  }
+  .panel.enter {
     animation: panel-in 240ms var(--ease-out) both;
     animation-delay: calc(var(--i) * 1ms);
   }
   .panel .pill { justify-self: start; }
   @keyframes panel-in {
-    from { opacity: 0; translate: 0 8px; }
+    from { opacity: 0; }
   }
   @media (max-width: 767.98px) {
     .body { padding: 18px; gap: 12px; }
@@ -243,6 +244,6 @@
     .panel { padding: 12px; gap: 6px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .panel { animation: none; }
+    .panel.enter { animation: none; }
   }
 </style>

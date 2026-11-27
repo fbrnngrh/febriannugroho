@@ -117,7 +117,8 @@
   /* return: plane slides in from 8 px left (one-shot, guarded by the phase so it never retriggers mid-flight) */
   .email-me[data-returned="true"] .plane { animation: plane-in 300ms var(--ease-out); }
   @keyframes plane-in {
-    from { translate: -8px 0; opacity: 0; }
+    from { translate: -8px 0; opacity: 0; rotate: 0deg; scale: 1; }
+    to { rotate: 0deg; scale: 1; }
   }
 
   .sr-only {

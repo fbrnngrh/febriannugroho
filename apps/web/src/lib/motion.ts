@@ -37,12 +37,21 @@ export function scrollToElement(el: Element, duration = 600) {
   const [x1, y1, x2, y2] = EASE_IN_OUT;
   const ease = cubicBezier(x1, y1, x2, y2);
   const t0 = performance.now();
+  let raf = 0;
+  // the user's own wheel or touch wins over the scripted scroll
+  const stop = () => cancelAnimationFrame(raf);
+  window.addEventListener("wheel", stop, { once: true, passive: true });
+  window.addEventListener("touchstart", stop, { once: true, passive: true });
   const step = (now: number) => {
     const p = Math.min(1, (now - t0) / duration);
     window.scrollTo(0, start + distance * ease(p));
-    if (p < 1) requestAnimationFrame(step);
+    if (p < 1) raf = requestAnimationFrame(step);
+    else {
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("touchstart", stop);
+    }
   };
-  requestAnimationFrame(step);
+  raf = requestAnimationFrame(step);
 }
 
 /** Solve a CSS cubic-bezier for y at progress x (Newton steps, then bisection). */

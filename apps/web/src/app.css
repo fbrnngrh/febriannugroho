@@ -50,7 +50,8 @@
   --stage-accent-fail: #cf222e;
   --stage-accent-claude: #d97757; --stage-accent-claude-text: #b5543a;
   --stage-terminal-bg: #161618; --stage-terminal-fg: #ededed;
-  --stage-terminal-muted: #a1a1a1; --stage-terminal-ok: #3fb950;
+  --stage-terminal-muted: #a1a1a1; --stage-terminal-ok: #3fb950; --stage-terminal-err: #ff8e88;
+  --fg-on-solid: #ffffff;
   --stage-diff-add: #eafbef;
   --stage-tint-pass: #e4f0e7; --stage-tint-merged: #f0eafb;
   --stage-tint-claude: #f9e9e4; --stage-tint-fail: #fcebe8;
@@ -216,6 +217,7 @@
 
 html {
   scroll-padding-top: 72px;
+  scroll-padding-bottom: 88px;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -367,10 +369,10 @@ button:disabled { cursor: not-allowed; }
   box-shadow: var(--shadow-button);
   transition: background-color var(--dur-hover) var(--ease-out), scale var(--dur-release) var(--ease-out), opacity var(--dur-hover) var(--ease-out);
 }
-.icon-button:active:not(:disabled) { scale: 0.96; transition-duration: var(--dur-press); }
-.icon-button:disabled { opacity: 0.4; }
+.icon-button:active:not(:disabled, [aria-disabled="true"]) { scale: 0.96; transition-duration: var(--dur-press); }
+.icon-button:is(:disabled, [aria-disabled="true"]) { opacity: 0.4; cursor: not-allowed; }
 @media (hover: hover) and (pointer: fine) {
-  .icon-button:hover:not(:disabled) { background: var(--surface-muted); }
+  .icon-button:hover:not(:disabled, [aria-disabled="true"]) { background: var(--surface-muted); }
 }
 
 /* Bordered small button (Copy) */
@@ -473,6 +475,7 @@ dialog.modal::backdrop {
 }
 dialog.modal[open]::backdrop { background: rgb(0 0 0 / calc(0.4 * var(--backdrop-a, 1))); transition-duration: var(--dur-dialog); }
 @starting-style { dialog.modal[open]::backdrop { background: #0000; } }
+dialog.dragging[open]::backdrop { transition: none; }
 
 @media (min-width: 768px) {
   dialog.modal {
@@ -498,7 +501,7 @@ dialog.modal[open]::backdrop { background: rgb(0 0 0 / calc(0.4 * var(--backdrop
     box-shadow: var(--shadow-modal);
     padding-bottom: env(safe-area-inset-bottom);
     translate: 0 100%;
-    transition: translate var(--dur-dialog-out) var(--ease-drawer), overlay var(--dur-dialog-out) allow-discrete, display var(--dur-dialog-out) allow-discrete;
+    transition: translate var(--dur-sheet) var(--ease-drawer), overlay var(--dur-sheet) allow-discrete, display var(--dur-sheet) allow-discrete;
   }
   dialog.modal[open] { translate: 0 0; transition-duration: var(--dur-sheet); }
   @starting-style { dialog.modal[open] { translate: 0 100%; } }
@@ -508,10 +511,12 @@ dialog.modal[open]::backdrop { background: rgb(0 0 0 / calc(0.4 * var(--backdrop
 .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
 
 /* Reduced motion: fewer and softer, not zero (04-motion.md §12) */
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+  .link:hover::after { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .link::after { scale: 1 1; opacity: 0; transition: opacity var(--dur-hover) ease-out; }
-  .link:hover::after { opacity: 1; }
-  .press:active, .icon-button:active:not(:disabled), .chip-button:active { scale: 1; }
+  .press:active, .icon-button:active, .chip-button:active { scale: 1; }
   .js [data-reveal] { translate: none; filter: none; }
   .js [data-reveal].is-in { transition: opacity 200ms ease-out; transition-delay: 0ms; }
   dialog.modal, dialog.modal[open] { scale: 1; translate: 0 0; transition-property: opacity, overlay, display; }

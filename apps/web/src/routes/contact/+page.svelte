@@ -55,11 +55,11 @@
   input, textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--border-default);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-button);
     background: var(--surface-default);
     color: var(--fg-default);
-    font: 15px/1.5 var(--font-sans);
+    font: 16px/1.5 var(--font-sans); /* 16px: no iOS zoom on focus */
     transition: border-color var(--dur-hover) var(--ease-out);
   }
   input:focus-visible, textarea:focus-visible { border-color: var(--fg-default); outline-offset: 1px; }

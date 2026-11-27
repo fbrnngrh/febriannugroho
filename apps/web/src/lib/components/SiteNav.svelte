@@ -15,6 +15,8 @@
     if (!target) return;
     e.preventDefault();
     scrollToElement(target);
+    target.tabIndex = -1;
+    target.focus({ preventScroll: true });
   }
 </script>
 

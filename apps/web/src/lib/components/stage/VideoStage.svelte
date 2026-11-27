@@ -82,7 +82,7 @@
   }
   function shotOut(_: Element) {
     if (reduced) return { duration: 200, css: (t: number) => `opacity: ${t}` };
-    return { duration: 240, css: (t: number) => `opacity: ${ease(t)}; translate: 0 ${(1 - ease(t)) * -8}px` };
+    return { duration: 240, css: (_t: number, u: number) => `opacity: ${1 - ease(u)}; translate: 0 ${-8 * ease(u)}px` };
   }
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -136,7 +136,7 @@
         {/if}
       </div>
       <div class="controls">
-        <span class="label-mono-sm counter" aria-live="polite">{pad(slide + 1)} / {pad(STAGE_SLIDES.length)}</span>
+        <span class="label-mono-sm counter" aria-live={running ? "off" : "polite"}>{pad(slide + 1)} / {pad(STAGE_SLIDES.length)}</span>
         <div class="segments">
           {#each STAGE_SLIDES as s, i (s.title)}
             <button
@@ -168,7 +168,6 @@
         <button
           type="button"
           class="icon-button pause"
-          aria-pressed={paused}
           aria-label={paused ? "Play showcase" : "Pause showcase"}
           onclick={() => (paused = !paused)}
         >
@@ -197,21 +196,22 @@
     position: absolute;
     inset: 0;
     opacity: 0;
-    transition: opacity var(--dur-stage-bg) var(--ease-stage);
+    visibility: hidden;
+    transition: opacity var(--dur-stage-bg) var(--ease-stage), visibility 0s linear var(--dur-stage-bg);
   }
-  .glow-set.active { opacity: 1; }
+  .glow-set.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--dur-stage-bg) var(--ease-stage), visibility 0s;
+  }
   .tint {
     position: absolute;
     inset: 0;
     background: linear-gradient(to bottom, transparent, var(--tint) 30%, var(--tint) 70%, transparent);
     opacity: 0.5;
   }
-  .orb, .cloud {
-    position: absolute;
-    border-radius: 50%;
-    will-change: transform;
-    transition: translate 1.8s var(--ease-stage);
-  }
+  .orb, .cloud { position: absolute; border-radius: 50%; }
+  .orb { will-change: transform; transition: translate 1.8s var(--ease-stage); }
   /* slow drift per shot: up to 90 px desktop, 45% of that on phones */
   .orb {
     --drift: 90px;
@@ -292,6 +292,9 @@
     to { scale: var(--to) 1; }
   }
   .pause { width: 32px; height: 32px; }
+  @media (prefers-reduced-motion: reduce) {
+    .stage-section { --dur-stage-bg: 200ms; }
+  }
   @media (max-width: 767.98px) {
     .caption { flex-direction: column; gap: 12px; }
     .pause { width: 44px; height: 44px; border-radius: 22px; }

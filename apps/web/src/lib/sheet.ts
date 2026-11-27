@@ -11,7 +11,9 @@ export function sheetDrag(onDismiss: () => void) {
     let lastY = 0;
     let lastT = 0;
     let velocity = 0;
+    let height = 0;
     let dragging = false;
+    let swallow = false;
     let pointerId = -1;
 
     function down(e: PointerEvent) {
@@ -22,11 +24,14 @@ export function sheetDrag(onDismiss: () => void) {
       const scroller = target.closest<HTMLElement>("[data-sheet-scroll]");
       if (scroller && scroller.scrollTop > 0) return;
       dragging = true;
+      swallow = false;
       pointerId = e.pointerId;
       startY = lastY = e.clientY;
       lastT = e.timeStamp;
       velocity = 0;
+      height = sheet.offsetHeight; // read once: no forced layout per move
       sheet.style.transition = "none";
+      sheet.classList.add("dragging");
     }
 
     function move(e: PointerEvent) {
@@ -35,7 +40,7 @@ export function sheetDrag(onDismiss: () => void) {
       if (Math.abs(dy) > 4 && !sheet.hasPointerCapture(pointerId)) sheet.setPointerCapture(pointerId);
       const y = dy < 0 ? dy * 0.2 : dy;
       sheet.style.translate = `0 ${y}px`;
-      sheet.style.setProperty("--backdrop-a", String(Math.max(0, 1 - y / sheet.offsetHeight)));
+      sheet.style.setProperty("--backdrop-a", String(Math.max(0, 1 - y / height)));
       const dt = e.timeStamp - lastT;
       if (dt > 0) velocity = ((e.clientY - lastY) / dt) * 1000;
       lastY = e.clientY;
@@ -45,22 +50,50 @@ export function sheetDrag(onDismiss: () => void) {
     function up(e: PointerEvent) {
       if (!dragging || e.pointerId !== pointerId) return;
       dragging = false;
+      sheet.classList.remove("dragging");
       const dy = Math.max(0, e.clientY - startY);
+      // finger held still before lifting = no fling
+      const v = e.timeStamp - lastT > 80 ? 0 : velocity;
+      swallow = Math.abs(e.clientY - startY) > 4;
       sheet.style.transition = "";
+      if (e.type !== "pointercancel" && (dy > height * 0.4 || v > 500)) {
+        // exit from where the finger let go; no snap back while the close goes through history
+        sheet.style.translate = "0 100%";
+        sheet.style.setProperty("--backdrop-a", "0");
+        sheet.addEventListener(
+          "close",
+          () => {
+            sheet.style.translate = "";
+            sheet.style.removeProperty("--backdrop-a");
+          },
+          { once: true },
+        );
+        onDismiss();
+        return;
+      }
       sheet.style.removeProperty("--backdrop-a");
       sheet.style.translate = "";
-      if (dy > sheet.offsetHeight * 0.4 || velocity > 500) onDismiss();
+    }
+
+    // the click that ends a drag must not count as a tap (e.g. the backdrop-click close)
+    function click(e: Event) {
+      if (!swallow) return;
+      swallow = false;
+      e.preventDefault();
+      e.stopPropagation();
     }
 
     sheet.addEventListener("pointerdown", down);
     sheet.addEventListener("pointermove", move);
     sheet.addEventListener("pointerup", up);
     sheet.addEventListener("pointercancel", up);
+    sheet.addEventListener("click", click, true);
     return () => {
       sheet.removeEventListener("pointerdown", down);
       sheet.removeEventListener("pointermove", move);
       sheet.removeEventListener("pointerup", up);
       sheet.removeEventListener("pointercancel", up);
+      sheet.removeEventListener("click", click, true);
     };
   };
 }
