@@ -64,7 +64,8 @@
       </div>
     </div>
     <p class="hero-line step s1">
-      <span class="strong">Hi, I'm Febrian.</span> By day I
+      <!-- phones drop the identity block, so the full name moves into the greeting -->
+      <span class="strong">Hi, I'm Febrian<span class="phone-name">{" Bayu Nugroho"}</span>.</span> By day I
       <a class="text-link" href="/#work/dealer" onclick={openDealer}>ship business systems</a>
       for a motorcycle dealer network. By night I run
       <a class="text-link" href="/stack">a small fleet of coding agents</a>
@@ -270,9 +271,22 @@
   }
   .tool-list li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1.4; }
 
+  .phone-name { display: none; }
   @media (max-width: 767.98px) {
     .hero-nav { display: none; }
     .intro { gap: 24px; padding-top: 64px; }
+    /* phones: the greeting carries the full name; photo, role and status step aside. The <h1> stays
+       in the page for screen readers and headings navigation, only hidden from view. */
+    .phone-name { display: inline; }
+    .identity .avatar, .identity .role, .identity :global(.status) { display: none; }
+    .identity {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
     .sections { gap: 80px; }
     .experience div { grid-template-columns: 96px 1fr; }
   }
