@@ -45,6 +45,7 @@
   --stage-terminal-bg: #161618; --stage-terminal-fg: #ededed;
   --stage-terminal-muted: #a1a1a1; --stage-terminal-ok: #3fb950;
   --fg-on-solid: #ffffff;
+  --danger-text: #cf222e; --danger-subtle: #ffebe9;
   --stage-glow-opacity-1: 0.72; --stage-glow-opacity-2: 0.6; --stage-glow-opacity-3: 0.46;
   --stage-cloud-opacity-1: 0.45; --stage-cloud-opacity-2: 0.36;
 
@@ -142,6 +143,7 @@
   --stage-accent-merged: #a371f7; --stage-on-merged: #0e0e0f;
   --stage-terminal-bg: #0a0a0b; --stage-terminal-fg: #ededed;
   --stage-terminal-muted: #8f8f8f; --stage-terminal-ok: #3fb950;
+  --danger-text: #ff8e88; --danger-subtle: #3d1d1c;
   --stage-glow-opacity-1: 0.4; --stage-glow-opacity-2: 0.32; --stage-glow-opacity-3: 0.24;
   --stage-cloud-opacity-1: 0.18; --stage-cloud-opacity-2: 0.14;
 

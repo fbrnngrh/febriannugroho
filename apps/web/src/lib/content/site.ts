@@ -231,9 +231,9 @@ export const AGENTS: Record<AgentId, Agent> = {
     stack: ["SvelteKit", "Laravel", "TypeScript"],
     skills: ["tdd", "codebase-design", "prototype"],
     run: ["$ task: add retry to uploads", "✓ 3 files changed · 18 tests pass", "→ handed to ULTRON for review"],
-    logos: ["claude", "svelte"],
+    logos: ["claude", "svelte", "laravel", "typescript"],
   },
-  ULTRON: { id: "ULTRON", role: "code review", logos: ["claude"] },
-  EDITH: { id: "EDITH", role: "UI review · E2E", logos: ["claude"] },
+  ULTRON: { id: "ULTRON", role: "code review", logos: ["claude", "github"] },
+  EDITH: { id: "EDITH", role: "UI review · E2E", logos: ["claude", "tailwind"] },
   KAREN: { id: "KAREN", role: "copy · docs", logos: ["antigravity"] },
 };
