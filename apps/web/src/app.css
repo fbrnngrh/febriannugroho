@@ -456,10 +456,12 @@ button:disabled { cursor: not-allowed; }
 .js [data-reveal="fade"] { translate: none; filter: none; }
 .js [data-reveal="noblur"] { filter: none; }
 .js [data-reveal="lift"] { translate: 0 16px; }
+/* none, not "0 0" / blur(0): once revealed the block is no stacking context, so a preview card
+   opening downward from it paints above the following blocks (EDITH review) */
 .js [data-reveal].is-in {
   opacity: 1;
-  translate: 0 0;
-  filter: blur(0);
+  translate: none;
+  filter: none;
   transition-property: opacity, translate, filter;
   transition-duration: var(--reveal-duration, var(--dur-reveal));
   transition-timing-function: var(--ease-out);

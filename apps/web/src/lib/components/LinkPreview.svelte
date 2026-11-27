@@ -99,9 +99,7 @@
     >{#if children}{@render children()}{:else}{label}{/if}{#if external}<span class="sr-only">
         (opens in a new tab)</span
       >{/if}</a
-  >
-  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-  <span
+  ><!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions --><span
     class="preview"
     {id}
     role="tooltip"
@@ -135,7 +133,8 @@
 </span>
 
 <style>
-  .wrap { position: relative; display: inline; }
+  /* one line: a trigger wrapped over two lines left the card unreachable from its second half (WCAG 1.4.13) */
+  .wrap { position: relative; display: inline; white-space: nowrap; }
   .preview {
     position: absolute;
     left: var(--left);

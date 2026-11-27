@@ -103,7 +103,7 @@
       <ul class="socials">
         {#each SOCIALS as s (s.label)}
           <li>
-            <a href={s.href} target="_blank" rel="noopener noreferrer" class="icon-link">
+            <a href={s.href} target="_blank" rel="noopener noreferrer" class="icon-link" title={s.label}>
               <Icon name={GLYPH[s.label]} />
               <span class="sr-only">{s.label} (opens in a new tab)</span>
             </a>
@@ -131,14 +131,14 @@
 
   <ul class="pill" data-open={peek} aria-label="Quick links">
     <li style:--delay={STAGGER[0]}>
-      <a href="mailto:{PERSON.email}" class="icon-link">
+      <a href="mailto:{PERSON.email}" class="icon-link" title="Email">
         <Icon name="mail" />
         <span class="sr-only">Email</span>
       </a>
     </li>
     {#each SOCIALS as s, i (s.label)}
       <li style:--delay={STAGGER[i + 1]}>
-        <a href={s.href} target="_blank" rel="noopener noreferrer" class="icon-link">
+        <a href={s.href} target="_blank" rel="noopener noreferrer" class="icon-link" title={s.label}>
           <Icon name={GLYPH[s.label]} />
           <span class="sr-only">{s.label} (opens in a new tab)</span>
         </a>
@@ -149,6 +149,7 @@
         type="button"
         class="icon-link"
         aria-label="Open profile card"
+        title="Open profile card"
         aria-expanded={open}
         aria-controls="profile-card"
         onclick={show}
