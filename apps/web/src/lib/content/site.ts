@@ -6,11 +6,6 @@
 export const DECISIONS = {
   /** §4.2 Writing route. Keep "/blog" until Febrian picks "/writing" (+ redirect). */
   writingPath: "/blog",
-  /**
-   * §4.4 Stage scene language. Proposed English translations are used and flagged
-   * (see STAGE_SCENE_TEXT below); the original Indonesian text sits next to each one.
-   */
-  stageSceneLanguage: "en-proposed" as "en-proposed" | "id",
   /** §4.5 Old 2025 posts (React 19, Next.js 16, Tailwind OKLCH). Kept visible until decided. */
   showLegacyPosts: true,
 } as const;
@@ -189,58 +184,28 @@ export const KIT = [
 
 export const FOOTER = "Built with SvelteKit. Designed with Claude and a few design skills.";
 
-export type StageSlide = {
-  title: string;
-  caption: string;
-  link?: { label: string; href: string };
-  /** one tone per shot: drives page glow, segment accent and tint */
-  tones: ["merged" | "fail" | "pass" | "claude", ...("merged" | "fail" | "pass" | "claude")[]];
-};
-
-export const STAGE_SLIDES: StageSlide[] = [
+/** Stage chapters (07-panggung-v3 §3). Shots live in components/stage/VideoStage.svelte; tone = html[data-stage]. */
+export const STAGE_CHAPTERS = [
   {
+    id: "fleet",
     title: "Fleet workflow",
     caption: "From an issue to a shipped PR: agents build and review, I approve the spec and the release.",
     link: { label: "Full fleet map", href: "/stack" },
-    tones: ["merged", "merged", "merged", "merged"],
   },
   {
+    id: "ci",
     title: "CI/CD pipeline",
     caption: "Every change goes through the same checks, a Docker build and a deploy on EasyPanel.",
-    tones: ["fail", "pass", "pass", "pass"],
   },
   {
-    title: "Agent orchestration",
-    caption: "One lead agent splits the work, four agents build, review, test and write docs.",
-    link: { label: "Full fleet map", href: "/stack" },
-    tones: ["claude", "claude", "claude", "claude"],
+    id: "site",
+    title: "How this site was built",
+    caption: "Designed in Figma, built with SvelteKit, shipped in PR #1 and deployed to Cloudflare in PR #2.",
+    // link to the Redesigning post: proposed only, waiting for Febrian (07 §10)
   },
-];
+] as const satisfies readonly { id: string; title: string; caption: string; link?: { label: string; href: string } }[];
 
-/**
- * Text inside the stage scenes. Figma has it in Indonesian; the site is English.
- * PROPOSED translations (handoff 05 §1, awaiting Febrian, §4.4). Flip DECISIONS.stageSceneLanguage to "id".
- */
-const SCENE_TEXT = {
-  assigned: { en: "Assigned to JARVIS", id: "Ditugaskan ke JARVIS" },
-  issueBody: {
-    en: "Replace the static showcase with a stage that plays on its own, like a short video that keeps changing.",
-    id: "Ganti showcase statis dengan panggung yang berjalan sendiri, seperti video pendek yang terus berganti.",
-  },
-  merged: { en: "Merged", id: "Merged" },
-  passed: { en: "passed", id: "lulus" },
-  failed: { en: "Failed", id: "Gagal" },
-  allPassed: { en: "All checks passed", id: "Semua cek lulus" },
-  deployed: { en: "Deployed from main", id: "Deploy dari main" },
-  parallel: { en: "Four tasks running in parallel", id: "Empat tugas jalan bersamaan" },
-  running: { en: "Running", id: "Berjalan" },
-  done: { en: "Done", id: "Selesai" },
-  ready: { en: "Ready for your review", id: "Siap untuk review kamu" },
-} as const;
-
-export function sceneText(key: keyof typeof SCENE_TEXT): string {
-  return SCENE_TEXT[key][DECISIONS.stageSceneLanguage === "id" ? "id" : "en"];
-}
+export type StageChapterId = (typeof STAGE_CHAPTERS)[number]["id"];
 
 export type AgentId = "JARVIS" | "FRIDAY" | "ULTRON" | "EDITH" | "KAREN";
 

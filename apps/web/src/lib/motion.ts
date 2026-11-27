@@ -18,7 +18,7 @@ export const DURATION = {
   dialog: 350,
   dialogOut: 150,
   sheet: 350,
-  stageBg: 700,
+  stageBg: 600,
 } as const;
 
 export function prefersReducedMotion(): boolean {

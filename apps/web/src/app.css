@@ -41,21 +41,10 @@
   --glow-dealer: #9dc7fe; --glow-ci: #a7e8bd; --glow-fleet: #c9b8fb; --glow-sales: #ffc9a0;
   --glow-opacity: 0.35;
 
-  --stage-glow-merged: #c4a8fb; --stage-glow-merged-2: #a9b8fb;
-  --stage-glow-pass: #9fe3b4; --stage-glow-pass-2: #a5e3f2;
-  --stage-glow-fail: #ffb9ad; --stage-glow-fail-2: #ffd3a8;
-  --stage-glow-claude: #f6b89f; --stage-glow-claude-2: #f8d39f;
   --stage-accent-merged: #8250df; --stage-on-merged: #ffffff;
-  --stage-accent-pass: #1a7f37;
-  --stage-accent-fail: #cf222e;
-  --stage-accent-claude: #d97757; --stage-accent-claude-text: #b5543a;
   --stage-terminal-bg: #161618; --stage-terminal-fg: #ededed;
-  --stage-terminal-muted: #a1a1a1; --stage-terminal-ok: #3fb950; --stage-terminal-err: #ff8e88;
+  --stage-terminal-muted: #a1a1a1; --stage-terminal-ok: #3fb950;
   --fg-on-solid: #ffffff;
-  --stage-diff-add: #eafbef;
-  --stage-tint-pass: #e4f0e7; --stage-tint-merged: #f0eafb;
-  --stage-tint-claude: #f9e9e4; --stage-tint-fail: #fcebe8;
-  --stage-line-pass: #8cbf9b;
   --stage-glow-opacity-1: 0.72; --stage-glow-opacity-2: 0.6; --stage-glow-opacity-3: 0.46;
   --stage-cloud-opacity-1: 0.45; --stage-cloud-opacity-2: 0.36;
 
@@ -86,7 +75,7 @@
 
   --col-text: 540px;
   --col-wide: 760px;
-  --col-stage: 1040px;
+  --col-stage: 1120px;
   --col-hero: 880px;
   --gutter: 24px;
 
@@ -107,7 +96,7 @@
   --dur-dialog: 350ms;
   --dur-dialog-out: 150ms;
   --dur-sheet: 350ms;
-  --dur-stage-bg: 700ms;
+  --dur-stage-bg: 600ms;
   /* stiffness 260, damping 32, mass 1 · 500 ms */
   --spring-fan: linear(0, 0.063, 0.194, 0.342, 0.481, 0.601, 0.699, 0.776, 0.835, 0.88, 0.914, 0.938, 0.956, 0.969, 0.978, 0.985, 0.989, 0.993, 0.995, 0.996, 1);
   /* stiffness 260, damping 24, mass 1 · 550 ms (after a swipe) */
@@ -150,20 +139,9 @@
   --glow-dealer: #2e6bd9; --glow-ci: #1f9d5a; --glow-fleet: #7a5af0; --glow-sales: #e07a2e;
   --glow-opacity: 0.16;
 
-  --stage-glow-merged: #6e40c9; --stage-glow-merged-2: #4a4fd6;
-  --stage-glow-pass: #1f8a4a; --stage-glow-pass-2: #1f7f9e;
-  --stage-glow-fail: #a8302a; --stage-glow-fail-2: #9a5a1c;
-  --stage-glow-claude: #c15f3c; --stage-glow-claude-2: #a8692a;
   --stage-accent-merged: #a371f7; --stage-on-merged: #0e0e0f;
-  --stage-accent-pass: #3fb950;
-  --stage-accent-fail: #f85149;
-  --stage-accent-claude: #d97757; --stage-accent-claude-text: #e08a6d;
   --stage-terminal-bg: #0a0a0b; --stage-terminal-fg: #ededed;
   --stage-terminal-muted: #8f8f8f; --stage-terminal-ok: #3fb950;
-  --stage-diff-add: #132a1b;
-  --stage-tint-pass: #1b2a1f; --stage-tint-merged: #272133;
-  --stage-tint-claude: #352622; --stage-tint-fail: #341e1c;
-  --stage-line-pass: #2b6834;
   --stage-glow-opacity-1: 0.4; --stage-glow-opacity-2: 0.32; --stage-glow-opacity-3: 0.24;
   --stage-cloud-opacity-1: 0.18; --stage-cloud-opacity-2: 0.14;
 
@@ -176,6 +154,41 @@
   --shadow-modal: 0 0 0 1px #ffffff17, 0 24px 48px -12px #00000080;
   --shadow-hover-card: 0 0 0 1px #ffffff17, 0 8px 24px -4px #00000080;
   --shadow-hover-lift: 0 8px 24px -8px #00000080;
+}
+
+/* Stage colour layer (07-panggung-v3 §4): one set of chapter colours on :root, so the hero aura,
+   page glow, frame and illustration change in one 600 ms move. Registered as <color> so the browser
+   interpolates them directly (in OKLab) instead of jumping. VideoStage sets html[data-stage]. */
+@property --scene-bg { syntax: "<color>"; inherits: true; initial-value: #ece3fd; }
+@property --scene-soft { syntax: "<color>"; inherits: true; initial-value: #dccbfc; }
+@property --scene-mid { syntax: "<color>"; inherits: true; initial-value: #c4a8fb; }
+@property --scene-acc { syntax: "<color>"; inherits: true; initial-value: #8250df; }
+@property --scene-ink { syntax: "<color>"; inherits: true; initial-value: #2e1a5c; }
+@property --scene-muted { syntax: "<color>"; inherits: true; initial-value: #5b4a86; }
+@property --stage-c { syntax: "<color>"; inherits: true; initial-value: #c4a8fb; }
+@property --stage-c2 { syntax: "<color>"; inherits: true; initial-value: #d9c9fd; }
+
+:root {
+  /* fleet (purple) is the initial value of every property above */
+  transition-property: --scene-bg, --scene-soft, --scene-mid, --scene-acc, --scene-ink, --scene-muted, --stage-c, --stage-c2;
+  transition-duration: var(--dur-stage-bg);
+  transition-timing-function: var(--ease-stage);
+}
+:root[data-stage="ci"] {
+  --scene-bg: #ddf3e4; --scene-soft: #c3ebcf; --scene-mid: #9fe3b4;
+  --scene-acc: #1a7f37; --scene-ink: #0d3b1c; --scene-muted: #2f5a3c;
+  --stage-c: #9fe3b4; --stage-c2: #c6efd3;
+}
+:root[data-stage="site"] {
+  --scene-bg: #fbe6dd; --scene-soft: #f8d2c2; --scene-mid: #f6b89f;
+  --scene-acc: #b5543a; --scene-ink: #5a2412; --scene-muted: #7a3b24;
+  --stage-c: #f6b89f; --stage-c2: #fad2c2;
+}
+:root.dark { --stage-c: #6e40c9; --stage-c2: #5530a8; }
+:root.dark[data-stage="ci"] { --stage-c: #1f8a4a; --stage-c2: #17703b; }
+:root.dark[data-stage="site"] { --stage-c: #c15f3c; --stage-c2: #9e4a2d; }
+@media (prefers-reduced-motion: reduce) {
+  :root { transition-duration: 200ms; }
 }
 
 @theme inline {
@@ -508,7 +521,7 @@ dialog.dragging[open]::backdrop { transition: none; }
 }
 
 /* Theme switch: no transitions for the one frame the class flips */
-.theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
+.theme-switching, .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
 
 /* Reduced motion: fewer and softer, not zero (04-motion.md §12) */
 @media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {

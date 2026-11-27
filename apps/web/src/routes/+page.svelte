@@ -78,9 +78,7 @@
 </section>
 
 <div class="sections">
-  <div data-reveal="noblur" use:inview>
-    <VideoStage />
-  </div>
+  <VideoStage />
 
   <section id="work" aria-label="Selected work">
     <WorkCarousel onopen={(id, from) => dialog?.open(id, from)} />
@@ -172,7 +170,7 @@
     bottom: -12%;
     width: 76%;
     height: 70%;
-    background: var(--stage-glow-merged);
+    background: var(--stage-c);
     opacity: var(--stage-glow-opacity-2);
     filter: blur(90px);
   }
@@ -181,7 +179,7 @@
     bottom: -10%;
     width: 53%;
     height: 58%;
-    background: var(--stage-glow-merged-2);
+    background: var(--stage-c2);
     opacity: var(--stage-glow-opacity-3);
     filter: blur(160px);
   }
