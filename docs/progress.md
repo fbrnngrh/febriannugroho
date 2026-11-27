@@ -9,6 +9,11 @@
 
 ### What's Done
 
+- [x] **Home micro-UI · image link previews** — 2026-11-27, branch `t3/home-image-link-previews`, local only
+  - `LinkPreview` takes `image`/`imageAlt`/`external`/`class`/children: screenshot card (280×175, scales down on narrow screens), clamped to the viewport, flips below near the top, rises from the link with a 2° tilt (200 ms in, 150 ms out, opacity only under reduced motion), text card if the image fails. Used for Trio Motor (About), every Tools item and GitHub/LinkedIn/Threads. Images expected at `/images/previews/<name>.webp`.
+  - Experience list is a quiet timeline (years, dot + hairline, role over company); Contact "Email me" compacted to the Copy chip (32 px, 13 px).
+  - Verified: `bun run -F web check` 0/0; browser 1440/390/320, light+dark, hover + keyboard focus + Esc on every preview, no horizontal scroll. Not verified: real screenshots (placeholders only), reduced motion in a browser, touch device.
+
 - [ ] **Live fixes · Panggung v3 (feat-016)** — 2026-11-27, branch `fix/live-stage-v3` from `origin/master` (`ebaacfe`), local only
   - Stage: `VideoStage` rewritten (one clock, no slide UI, card = `<button aria-pressed>`, hover no longer pauses, resume from remaining time); 12 scenes in `components/stage/scenes/` from Figma 307:13632…309:13918; chapter colours as `@property` on `html[data-stage]` (600 ms), one glow set with mask edges, scroll-linked grow (+ IO fallback). StageScene, STAGE_SLIDES, SCENE_TEXT and unused stage tokens removed.
   - Review items: carousel bleeds right from the text column with a mask (no `::after` box), real hover lift on work cards and the Writing fan, 16×6 pill dot, Email me in Contact, Writing/Tools/Selected work heading reveals, Stack fleet map with SVG connectors + fail loop + approve line + 10 s WAAPI timeline (fail path every third loop), missing card logos, GitHub graph on `contributionLevel` for 39 weeks, `04-motion.md` §1/§6/§9/§10.

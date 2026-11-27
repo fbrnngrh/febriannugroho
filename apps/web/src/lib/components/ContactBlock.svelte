@@ -4,6 +4,7 @@
   import CopyButton from "./CopyButton.svelte";
   import EmailMeButton from "./EmailMeButton.svelte";
   import Icon from "./Icon.svelte";
+  import LinkPreview from "./LinkPreview.svelte";
 
   let { headingLevel = 2 }: { headingLevel?: 1 | 2 } = $props();
 
@@ -30,10 +31,23 @@
   <ul class="socials" data-reveal use:inview style:--reveal-delay="200ms">
     {#each SOCIALS as s (s.label)}
       <li>
-        <a class="link social" href={s.href} target="_blank" rel="noopener noreferrer">
-          {s.label}<Icon name="external" size={14} />
-          <span class="sr-only">(opens in a new tab)</span>
-        </a>
+        {#if "preview" in s}
+          <LinkPreview
+            href={s.href}
+            label={s.label}
+            meta={new URL(s.href).hostname.replace(/^www\./, "")}
+            image="/images/previews/{s.preview}.webp"
+            class="link social"
+            external
+          >
+            {s.label}<Icon name="external" size={14} />
+          </LinkPreview>
+        {:else}
+          <a class="link social" href={s.href} target="_blank" rel="noopener noreferrer">
+            {s.label}<Icon name="external" size={14} />
+            <span class="sr-only">(opens in a new tab)</span>
+          </a>
+        {/if}
       </li>
     {/each}
   </ul>
@@ -45,8 +59,17 @@
   .heading { margin: 0; font-weight: 400; }
   .lead { margin: 0; }
   .email-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-  /* same paper-plane button as the profile card, sized to sit in the row next to Copy */
-  .email-row :global(.email-me) { width: auto; height: 32px; padding-inline: 14px; border-radius: var(--radius-button); }
+  /* same paper-plane button as the profile card, compacted to the Copy chip: 32 px, 13 px label, 12 px plane */
+  .email-row :global(.email-me) {
+    width: auto;
+    height: 32px;
+    gap: 6px;
+    padding-inline: 11px 10px;
+    border-radius: var(--radius-button);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .email-row :global(.email-me svg) { width: 12px; height: 12px; }
   .email {
     font-size: 17px;
     color: var(--fg-default);
@@ -61,10 +84,10 @@
     .email:hover { text-decoration-color: currentColor; }
   }
   .socials { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; list-style: none; }
-  .social { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; line-height: 21px; }
+  .socials :global(.social) { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; line-height: 21px; }
   /* 44 px touch target on phones without changing the 21 px line */
   @media (pointer: coarse) {
-    .social::before { content: ""; position: absolute; inset: -12px -6px; }
+    .socials :global(.social::before) { content: ""; position: absolute; inset: -12px -6px; }
   }
   .where { margin: 0; font-size: 13px; color: var(--fg-muted); }
   .sr-only {

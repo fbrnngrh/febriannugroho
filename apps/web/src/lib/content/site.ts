@@ -22,9 +22,10 @@ export const PERSON = {
 } as const;
 
 export const SOCIALS = [
-  { label: "GitHub", short: "GH", href: "https://github.com/fbrnngrh" },
-  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/" },
-  { label: "Threads", short: "Th", href: "https://www.threads.net/@febriannugroho.dev" },
+  // preview: screenshot name in /images/previews/<preview>.webp, shown on hover/focus
+  { label: "GitHub", short: "GH", href: "https://github.com/fbrnngrh", preview: "github" },
+  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/", preview: "linkedin" },
+  { label: "Threads", short: "Th", href: "https://www.threads.net/@febriannugroho.dev", preview: "threads" },
   { label: "Instagram", short: "IG", href: "https://www.instagram.com/febriannugroho.dev" },
 ] as const;
 
@@ -135,8 +136,8 @@ export const PROJECTS: Project[] = [
 
 export const ABOUT = {
   experience: [
-    { years: "2024–now", role: "Software engineer, Trio Motor" },
-    { years: "2023–2024", role: "Programmer intern, Trio Motor" },
+    { years: "2024–now", role: "Software engineer", company: "Trio Motor" },
+    { years: "2023–2024", role: "Programmer intern", company: "Trio Motor" },
   ],
 };
 
@@ -157,12 +158,12 @@ export const PLANNED_POSTS: readonly {
 }[] = [];
 
 export const TOOLS = [
-  { name: "T3 Code", logo: "t3code" },
-  { name: "Claude", logo: "claude" },
-  { name: "Antigravity", logo: "antigravity" },
-  { name: "SvelteKit", logo: "svelte" },
-  { name: "Docker + EasyPanel", logo: "docker", logo2: "easypanel" },
-  { name: "Figma", logo: "figma" },
+  { name: "T3 Code", logo: "t3code", href: "https://t3.codes", preview: "t3code" },
+  { name: "Claude", logo: "claude", href: "https://claude.ai", preview: "claude" },
+  { name: "Antigravity", logo: "antigravity", href: "https://antigravity.google", preview: "antigravity" },
+  { name: "SvelteKit", logo: "svelte", href: "https://svelte.dev/docs/kit", preview: "sveltekit" },
+  { name: "Docker + EasyPanel", logo: "docker", logo2: "easypanel", href: "https://easypanel.io", preview: "easypanel" },
+  { name: "Figma", logo: "figma", href: "https://www.figma.com", preview: "figma" },
 ] as const;
 
 export const KIT = [

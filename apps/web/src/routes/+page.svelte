@@ -89,7 +89,14 @@
   <section class="col-text about" aria-labelledby="about-h">
     <h2 id="about-h" class="label-mono" data-reveal use:inview>About</h2>
     <p class="body-text" data-reveal use:inview>
-      I'm a software engineer in Banjarmasin, Indonesia. I joined Trio Motor as an intern and have spent about three years
+      I'm a software engineer in Banjarmasin, Indonesia. I joined
+      <LinkPreview
+        href="https://www.triomotor.co.id"
+        label="Trio Motor"
+        meta="triomotor.co.id"
+        image="/images/previews/triomotor.webp"
+        external
+      /> as an intern and have spent about three years
       there, now owning several of the systems the business runs on every day.
     </p>
     <p class="body-text" data-reveal use:inview style:--reveal-delay="80ms">
@@ -106,7 +113,10 @@
     </p>
     <dl class="experience" data-reveal use:inview style:--reveal-delay="240ms">
       {#each ABOUT.experience as row (row.years)}
-        <div><dt class="tabular">{row.years}</dt><dd>{row.role}</dd></div>
+        <div>
+          <dt class="tabular">{row.years}</dt>
+          <dd><span class="exp-role">{row.role}</span> <span class="exp-company">{row.company}</span></dd>
+        </div>
       {/each}
     </dl>
   </section>
@@ -133,9 +143,18 @@
     <ul class="tool-list" data-reveal="noblur" use:inview>
       {#each TOOLS as t (t.name)}
         <li>
-          <Logo name={t.logo} size={16} />
-          {#if "logo2" in t}<Logo name={t.logo2} size={16} />{/if}
-          <span>{t.name}</span>
+          <LinkPreview
+            href={t.href}
+            label={t.name}
+            meta={new URL(t.href).hostname.replace(/^www\./, "")}
+            image="/images/previews/{t.preview}.webp"
+            class="tool"
+            external
+          >
+            <Logo name={t.logo} size={16} />
+            {#if "logo2" in t}<Logo name={t.logo2} size={16} />{/if}
+            <span>{t.name}</span>
+          </LinkPreview>
         </li>
       {/each}
     </ul>
@@ -243,10 +262,35 @@
   .about { display: grid; gap: 16px; }
   .about :global(p), .about h2 { margin: 0; }
   .about h2, .tools h2, .writing h2 { font-weight: 400; }
-  .experience { display: grid; gap: 8px; margin: 0; padding-top: 16px; }
-  .experience div { display: grid; grid-template-columns: 120px 1fr; gap: 16px; font-size: 15px; line-height: 1.4; }
-  .experience dt { color: var(--fg-muted); }
-  .experience dd { margin: 0; }
+  /* quiet timeline: tabular years, a dot per role joined by a hairline, newest dot filled */
+  .experience { display: grid; gap: 20px; margin: 0; padding-top: 16px; }
+  .experience div { display: grid; grid-template-columns: 88px minmax(0, 1fr); column-gap: 16px; line-height: 1.4; }
+  .experience dt { padding-top: 2px; font-size: 13px; color: var(--fg-muted); }
+  .experience dd { position: relative; display: grid; margin: 0; padding-inline-start: 20px; }
+  .experience dd::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--line-default);
+    border-radius: var(--radius-pill);
+    background: var(--bg-page);
+  }
+  .experience div:first-child dd::before { border-color: var(--fg-default); background: var(--fg-default); }
+  .experience dd::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 4px;
+    top: 18px;
+    bottom: -23px;
+    width: 1px;
+    background: var(--border-default);
+  }
+  .experience div:last-child dd::after { content: none; }
+  .exp-role { font-size: 15px; font-weight: 500; color: var(--fg-default); }
+  .exp-company { font-size: 14px; color: var(--fg-muted); }
   /* the side cards of the fan peek past the viewport on phones: clip at the page edge */
   /* minmax(0, 1fr): the scrolling row must not widen the track and push the text column off-centre */
   .writing { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; overflow-x: clip; }
@@ -269,7 +313,26 @@
     padding: 0;
     list-style: none;
   }
-  .tool-list li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1.4; }
+  .tool-list li { display: inline-flex; font-size: 15px; line-height: 1.4; }
+  /* the pill bleeds 8 px past the text so names stay on the column edge; 29 px tall hit area */
+  .tool-list :global(.tool) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: -4px -8px;
+    padding: 4px 8px;
+    border-radius: var(--radius-button);
+    color: var(--fg-default);
+    text-decoration: none;
+    transition: background-color var(--dur-hover) var(--ease-out), scale var(--dur-release) var(--ease-out);
+  }
+  .tool-list :global(.tool:active) { scale: 0.96; transition-duration: var(--dur-press); }
+  @media (hover: hover) and (pointer: fine) {
+    .tool-list :global(.tool:hover) { background: var(--surface-muted); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tool-list :global(.tool:active) { scale: 1; }
+  }
 
   .phone-name { display: none; }
   @media (max-width: 767.98px) {
@@ -288,7 +351,7 @@
       white-space: nowrap;
     }
     .sections { gap: 80px; }
-    .experience div { grid-template-columns: 96px 1fr; }
+    .experience div { grid-template-columns: 76px minmax(0, 1fr); column-gap: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .enter .step, .enter .s3 { animation: hero-fade 200ms ease-out both; }
