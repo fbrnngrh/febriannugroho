@@ -164,10 +164,10 @@
   .intro {
     align-self: center;
     display: grid;
-    justify-items: start;
+    justify-items: center;
     gap: 28px;
     padding-top: 96px;
-    text-align: start;
+    text-align: center;
   }
   /* avatar sits beside the name and role; the status line runs under them */
   .identity { display: flex; align-items: flex-start; gap: 12px; text-align: left; }
@@ -185,14 +185,12 @@
   .role { margin: 0; font-size: 15px; line-height: 1.4; color: var(--fg-muted); }
   .hero-line {
     margin: 0;
-    font-size: clamp(1.5rem, 1rem + 2.2vw, 2.5rem);
+    /* ~22px on a 390px phone, ~32px at 768px, 40px from ~1100px */
+    font-size: clamp(1.3125rem, 0.75rem + 2.6vw, 2.5rem);
     font-weight: 500;
     line-height: 1.25;
     letter-spacing: -0.015em;
     color: var(--fg-muted);
-    /* the headline alone is centred across the hero column; the identity block above stays on the left edge */
-    justify-self: stretch;
-    text-align: center;
     /* balance: even lines, no lone "with me." at the end or stray "a" at a line end */
     text-wrap: balance;
   }
