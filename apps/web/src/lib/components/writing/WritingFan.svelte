@@ -5,8 +5,9 @@
   import { inview } from "#lib/actions/inview.ts";
   import Icon from "../Icon.svelte";
   import CoverArt from "./CoverArt.svelte";
+  import { COVER_TINT } from "./WritingRow.svelte";
 
-  // Writing fan C1 (Figma 241:16652, notes 216:17059, motion 04-motion.md §7).
+  // Writing fan C1 (Figma 241:16652, notes 216:17059, motion 04-motion.md §7). Phones only; wider screens use WritingRow.
   let { posts }: { posts: PostSummary[] } = $props();
 
   let active = $state(0);
@@ -14,11 +15,6 @@
   let fanEl = $state<HTMLElement>();
   const n = $derived(posts.length);
 
-  const COVER_TINT: Record<string, string> = {
-    Shipping: "var(--ci-subtle)",
-    Agents: "var(--fleet-subtle)",
-    Design: "var(--blue-subtle)",
-  };
 
   function go(i: number, fromSwipe = false) {
     released = fromSwipe;
