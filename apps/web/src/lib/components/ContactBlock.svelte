@@ -2,6 +2,7 @@
   import { inview } from "#lib/actions/inview.ts";
   import { PERSON, SOCIALS } from "#lib/content/site.ts";
   import CopyButton from "./CopyButton.svelte";
+  import EmailMeButton from "./EmailMeButton.svelte";
   import Icon from "./Icon.svelte";
 
   let { headingLevel = 2 }: { headingLevel?: 1 | 2 } = $props();
@@ -23,6 +24,7 @@
   <p class="body-text lead" data-reveal use:inview>The fastest way to reach me is email.</p>
   <div class="email-row" data-reveal use:inview style:--reveal-delay="100ms">
     <a class="email" href="mailto:{PERSON.email}" bind:this={emailEl}>{PERSON.email}</a>
+    <EmailMeButton />
     <CopyButton value={PERSON.email} label="Copy email" selectOnFail={() => emailEl} />
   </div>
   <ul class="socials" data-reveal use:inview style:--reveal-delay="200ms">
@@ -43,6 +45,8 @@
   .heading { margin: 0; font-weight: 400; }
   .lead { margin: 0; }
   .email-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+  /* same paper-plane button as the profile card, sized to sit in the row next to Copy */
+  .email-row :global(.email-me) { width: auto; height: 32px; padding-inline: 14px; border-radius: var(--radius-button); }
   .email {
     font-size: 17px;
     color: var(--fg-default);
