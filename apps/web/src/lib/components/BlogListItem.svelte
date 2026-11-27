@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ArrowRight } from "lucide-svelte";
-  import { staggerDelay, MOTION_STAGGER } from "$lib/motion";
+  import { staggerDelay, MOTION_STAGGER } from "#lib/motion.ts";
 
   let {
     date,
@@ -10,7 +10,7 @@
     tags = [],
     readingTime = "",
     index = 0,
-  } = $props<{
+  }: {
     date: string;
     title: string;
     description: string;
@@ -18,7 +18,7 @@
     tags?: string[];
     readingTime?: string;
     index?: number;
-  }>();
+  } = $props();
 </script>
 
 <a

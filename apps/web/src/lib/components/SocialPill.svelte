@@ -3,11 +3,11 @@
     href,
     label,
     bgColor = "var(--color-secondary)",
-  } = $props<{
+  }: {
     href: string;
     label: string;
     bgColor?: string;
-  }>();
+  } = $props();
 </script>
 
 <a

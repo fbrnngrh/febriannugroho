@@ -1,8 +1,8 @@
 <script lang="ts">
-  let { src, alt = "Profile photo" } = $props<{
+  let { src, alt = "Profile photo" }: {
     src: string;
     alt?: string;
-  }>();
+  } = $props();
 </script>
 
 <span class="group relative inline-block align-middle">

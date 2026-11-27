@@ -1,8 +1,8 @@
 <script lang="ts">
   import { mount, unmount, tick } from "svelte";
-  import BackLink from "$lib/components/BackLink.svelte";
-  import CopyCodeButton from "$lib/components/CopyCodeButton.svelte";
-  import { inview } from "$lib/actions/inview";
+  import BackLink from "#lib/components/BackLink.svelte";
+  import CopyCodeButton from "#lib/components/CopyCodeButton.svelte";
+  import { inview } from "#lib/actions/inview.ts";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

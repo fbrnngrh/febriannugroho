@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { inview } from "$lib/actions/inview";
-  import defaultData from "$lib/data/github-contributions.json";
+  import { inview } from "#lib/actions/inview.ts";
+  import defaultData from "#lib/data/github-contributions.json";
 
-  let { data = defaultData } = $props<{
+  let { data = defaultData }: {
     data?: typeof defaultData;
-  }>();
+  } = $props();
 
   // Selected year state (defaults to rolling last year)
   let selectedYear = $state<string>("lastYear");

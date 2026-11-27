@@ -1,7 +1,7 @@
 <script lang="ts">
   import { mount } from "svelte";
   import { Copy, Check, Send } from "lucide-svelte";
-  import BackLink from "$lib/components/BackLink.svelte";
+  import BackLink from "#lib/components/BackLink.svelte";
 
   let name = $state("");
   let email = $state("");

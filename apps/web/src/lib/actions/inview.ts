@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "$lib/motion";
+import { prefersReducedMotion } from "#lib/motion.ts";
 
 export type InviewOptions = {
   class?: string;

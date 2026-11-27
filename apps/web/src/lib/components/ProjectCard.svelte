@@ -1,9 +1,9 @@
 <script lang="ts">
-  let { title, description, href } = $props<{
+  let { title, description, href }: {
     title: string;
     description: string;
     href: string;
-  }>();
+  } = $props();
 </script>
 
 <a

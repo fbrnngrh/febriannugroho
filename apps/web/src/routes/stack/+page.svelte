@@ -25,11 +25,11 @@
     SvglFigmaLogo,
     SvglNotionLogo,
   } from "@selemondev/svgl-svelte";
-  import { inview } from "$lib/actions/inview";
-  import BackLink from "$lib/components/BackLink.svelte";
-  import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
-  import GitHubContributionCalendar from "$lib/components/GitHubContributionCalendar.svelte";
-  import StackToolItem from "$lib/components/StackToolItem.svelte";
+  import { inview } from "#lib/actions/inview.ts";
+  import BackLink from "#lib/components/BackLink.svelte";
+  import ProfilePhoto from "#lib/components/ProfilePhoto.svelte";
+  import GitHubContributionCalendar from "#lib/components/GitHubContributionCalendar.svelte";
+  import StackToolItem from "#lib/components/StackToolItem.svelte";
 
   interface StackItem {
     icon: Component;

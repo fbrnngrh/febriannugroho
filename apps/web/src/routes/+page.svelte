@@ -9,7 +9,7 @@
     SvglLinkedInLogo,
     SvglThreadsLogo,
   } from "@selemondev/svgl-svelte";
-  import ProfilePhoto from "$lib/components/ProfilePhoto.svelte";
+  import ProfilePhoto from "#lib/components/ProfilePhoto.svelte";
 
   const sections = [
     "intro",

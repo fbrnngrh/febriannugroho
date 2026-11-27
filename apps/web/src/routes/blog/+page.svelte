@@ -1,9 +1,9 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import { Search, X } from "lucide-svelte";
-  import { inview } from "$lib/actions/inview";
-  import BackLink from "$lib/components/BackLink.svelte";
-  import BlogListItem from "$lib/components/BlogListItem.svelte";
+  import { inview } from "#lib/actions/inview.ts";
+  import BackLink from "#lib/components/BackLink.svelte";
+  import BlogListItem from "#lib/components/BlogListItem.svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

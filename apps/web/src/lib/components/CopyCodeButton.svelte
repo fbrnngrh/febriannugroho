@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Copy, Check } from "lucide-svelte";
 
-  let { code } = $props<{ code: string }>();
+  let { code }: { code: string } = $props();
 
   let copied = $state(false);
 

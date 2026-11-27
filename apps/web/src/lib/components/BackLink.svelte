@@ -5,10 +5,10 @@
   let {
     href,
     label = "Back",
-  } = $props<{
+  }: {
     href: string;
     label?: string;
-  }>();
+  } = $props();
 </script>
 
 <a

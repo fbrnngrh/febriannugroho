@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component } from "svelte";
-  import { staggerDelay } from "$lib/motion";
+  import { staggerDelay } from "#lib/motion.ts";
 
   interface StackTool {
     icon: Component;
@@ -10,10 +10,10 @@
     monochrome?: boolean;
   }
 
-  let { tool, index = 0 } = $props<{
+  let { tool, index = 0 }: {
     tool: StackTool;
     index?: number;
-  }>();
+  } = $props();
 </script>
 
 <div class="scroll-reveal-stagger flex items-start gap-4" style="--delay: {staggerDelay(index)}">
