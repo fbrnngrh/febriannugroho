@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     mdsvex({ extensions: [".md"] }),
     sveltekit({
-      adapter: adapter(),
+      adapter: adapter({ fallback: "404.html" }),
       prerender: {
         // /#work/<id> opens the project dialog; it is not an element id
         handleMissingId: ({ id, message }) => {

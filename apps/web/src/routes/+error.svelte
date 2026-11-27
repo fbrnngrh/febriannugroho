@@ -7,6 +7,7 @@
 
 <svelte:head>
   <title>{notFound ? "Page not found" : "Something went wrong"} · Febrian Bayu Nugroho</title>
+  <meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="page col-text">
