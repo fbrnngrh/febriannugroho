@@ -113,7 +113,7 @@
         onpointercancel={pos === "front" ? up : undefined}
         onclickcapture={pos === "front" ? onclickcapture : undefined}
       >
-        <div class="art"><CoverArt kind={post.tags[0] ?? ""} /></div>
+        <div class="art"><CoverArt kind={post.tags[0] ?? ""} slug={post.slug} /></div>
         <div class="text">
           <h3 class="title">
             {#if post.planned}
