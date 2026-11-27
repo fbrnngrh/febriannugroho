@@ -190,6 +190,9 @@
     line-height: 1.25;
     letter-spacing: -0.015em;
     color: var(--fg-muted);
+    /* the headline alone is centred across the hero column; the identity block above stays on the left edge */
+    justify-self: stretch;
+    text-align: center;
     /* balance: even lines, no lone "with me." at the end or stray "a" at a line end */
     text-wrap: balance;
   }
