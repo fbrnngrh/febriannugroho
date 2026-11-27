@@ -91,7 +91,7 @@
     <p class="body-text" data-reveal use:inview>
       I'm a software engineer in Banjarmasin, Indonesia. I joined
       <LinkPreview
-        href="https://www.triomotor.co.id"
+        href="https://triomotor.co.id"
         label="Trio Motor"
         meta="triomotor.co.id"
         image="/images/previews/triomotor.webp"
