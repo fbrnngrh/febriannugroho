@@ -20,7 +20,11 @@ declare global {
     // interface Error {}
     // interface Locals {}
     // interface PageData {}
-    // interface PageState {}
+    interface PageState {
+      /** shallow-routing overlays: back closes them */
+      explore?: boolean;
+      project?: string;
+    }
     // interface Platform {}
   }
 }
