@@ -7,6 +7,8 @@
   import CopyButton from "#lib/components/CopyButton.svelte";
   import Icon from "#lib/components/Icon.svelte";
   import WorkCover from "#lib/components/work/WorkCover.svelte";
+  import CoverArt from "#lib/components/writing/CoverArt.svelte";
+  import { coverOf } from "#lib/components/writing/WritingRow.svelte";
   import { allPosts, formatDate, postHref } from "#lib/content/posts.ts";
   import { DECISIONS, PROJECTS } from "#lib/content/site.ts";
   import type { PageProps } from "./$types";
@@ -27,6 +29,14 @@
     // reading on to the next article keeps the way back to Home
     if (!path?.startsWith(`${DECISIONS.writingPath}/`)) fromHome = previousIsHome;
   });
+  // the illustration cover plays once shortly after each article opens (also when reading on to the next one)
+  let artPlay = $state(0);
+  $effect(() => {
+    void post.slug;
+    const t = setTimeout(() => artPlay++, 300);
+    return () => clearTimeout(t);
+  });
+
   function back(e: MouseEvent) {
     if (!previousIsHome || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
@@ -118,6 +128,12 @@
     <div class="cover col-wide" data-reveal="fade" use:inview>
       <img src={post.coverImage} alt="" width="1200" height="545" />
     </div>
+  {:else}
+    <!-- no mockup or hero image: the post's own illustration, in its card colour, plays once on open -->
+    {@const art = coverOf(post)}
+    <div class="cover art-cover col-wide" data-reveal="fade" use:inview style:--cover-bg={art.bg} style:--cover-accent={art.accent}>
+      <CoverArt kind={post.tags[0] ?? ""} slug={post.slug} play={artPlay} />
+    </div>
   {/if}
 
   <div class="body col-text">
@@ -164,6 +180,16 @@
   h1 { margin: 0; font-size: 32px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
   .lead { margin: 0; font-size: 19px; line-height: 1.5; color: var(--fg-muted); }
   .cover { border-radius: var(--radius-card); overflow: hidden; }
+  /* same 2.2 frame as the image covers; the 200×120 drawing sits centred at the frame's height */
+  .art-cover {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 2.2;
+    padding: clamp(16px, 4vw, 40px);
+    background: var(--cover-bg);
+    box-shadow: var(--shadow-ring-1);
+  }
+  .art-cover :global(.art) { width: auto; height: 100%; max-width: 100%; }
   .cover img { display: block; width: 100%; height: auto; aspect-ratio: 2.2; object-fit: cover; background: var(--surface-placeholder); outline: 1px solid var(--image-outline); outline-offset: -1px; }
 
   .body { position: relative; display: grid; gap: 32px; justify-items: start; }
