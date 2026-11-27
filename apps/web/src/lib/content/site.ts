@@ -145,25 +145,16 @@ export const WRITING_INTRO = "Notes from shipping systems at work and running an
 export const WRITING_FILTERS = ["All", "Shipping", "Agents", "Design"] as const;
 export type WritingTag = (typeof WRITING_FILTERS)[number];
 
-/** Posts in the design that have no body in the repo yet (placeholder, handoff 05 §4). */
-export const PLANNED_POSTS = [
-  {
-    slug: "redesigning-this-site-with-claude",
-    title: "Redesigning this site with Claude",
-    description: "What I learned designing in Figma with an agent and a set of design skills.",
-    date: "2026-11-18",
-    readingTime: "5 min",
-    tags: ["Design"],
-  },
-  {
-    slug: "how-my-agent-fleet-ships-code",
-    title: "How my agent fleet ships code",
-    description: "Planning, building, reviewing and testing with agents while I orchestrate.",
-    date: "2026-11-04",
-    readingTime: "7 min",
-    tags: ["Agents"],
-  },
-] as const;
+/** Posts in the design that have no body in the repo yet (placeholder, handoff 05 §4). Both earlier
+ *  placeholders are published now (content/blog); add an entry here to show a "coming soon" card. */
+export const PLANNED_POSTS: readonly {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  readingTime: string;
+  tags: readonly string[];
+}[] = [];
 
 export const TOOLS = [
   { name: "T3 Code", logo: "t3code" },
