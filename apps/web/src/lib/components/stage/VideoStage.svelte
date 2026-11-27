@@ -165,7 +165,7 @@
     >
       <span class="screen">
         {#key index}
-          <span class="shot" in:shotIn out:shotOut>
+          <span class="shot" data-tone={current.id} in:shotIn out:shotOut>
             <Scene />
           </span>
         {/key}
@@ -250,8 +250,11 @@
   /* press is quicker than the release (100 / 150 ms) */
   .frame:active { scale: 0.99; transition-duration: 200ms, var(--dur-press); }
 
-  .screen {
-    /* chapter colours for the scene; the dark values are provisional until Febrian reviews them */
+  /* Scene tokens, resolved twice: on .screen from the transitioning chapter colour (its one background
+     layer), and on each .shot from that shot's own chapter (data-tone, app.css). So during a chapter
+     crossfade the old shot leaves in its colours and the new one arrives in its own, never purple on green.
+     The dark values are provisional until Febrian reviews them. */
+  .screen, .shot {
     --s-bg: var(--scene-bg);
     --s-soft: var(--scene-soft);
     --s-mid: var(--scene-mid);
@@ -262,6 +265,8 @@
     --s-on-acc: #fff;
     --s-deep: var(--scene-ink);
     --s-on-deep: var(--scene-soft);
+  }
+  .screen {
     position: relative;
     display: grid;
     overflow: hidden;
@@ -270,7 +275,7 @@
     /* one background layer: shots never paint their own, so a chapter crossfade never mixes two */
     background: var(--s-bg);
   }
-  :global(.dark) .screen {
+  :global(.dark) :is(.screen, .shot) {
     --s-bg: color-mix(in oklab, var(--scene-bg) 18%, var(--surface-default));
     --s-soft: color-mix(in oklab, var(--scene-mid) 28%, var(--surface-default));
     --s-mid: color-mix(in oklab, var(--scene-mid) 50%, var(--surface-default));

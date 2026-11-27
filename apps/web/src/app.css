@@ -178,16 +178,21 @@
   transition-duration: var(--dur-stage-bg);
   transition-timing-function: var(--ease-stage);
 }
-:root[data-stage="ci"] {
+/* [data-tone] = one stage shot, which keeps its own chapter colours (no transition on it) */
+[data-tone="fleet"] {
+  --scene-bg: #ece3fd; --scene-soft: #dccbfc; --scene-mid: #c4a8fb;
+  --scene-acc: #8250df; --scene-ink: #2e1a5c; --scene-muted: #5b4a86;
+}
+:root[data-stage="ci"], [data-tone="ci"] {
   --scene-bg: #ddf3e4; --scene-soft: #c3ebcf; --scene-mid: #9fe3b4;
   --scene-acc: #1a7f37; --scene-ink: #0d3b1c; --scene-muted: #2f5a3c;
-  --stage-c: #9fe3b4; --stage-c2: #c6efd3;
 }
-:root[data-stage="site"] {
+:root[data-stage="ci"] { --stage-c: #9fe3b4; --stage-c2: #c6efd3; }
+:root[data-stage="site"], [data-tone="site"] {
   --scene-bg: #fbe6dd; --scene-soft: #f8d2c2; --scene-mid: #f6b89f;
   --scene-acc: #b5543a; --scene-ink: #5a2412; --scene-muted: #7a3b24;
-  --stage-c: #f6b89f; --stage-c2: #fad2c2;
 }
+:root[data-stage="site"] { --stage-c: #f6b89f; --stage-c2: #fad2c2; }
 :root.dark { --stage-c: #6e40c9; --stage-c2: #5530a8; }
 :root.dark[data-stage="ci"] { --stage-c: #1f8a4a; --stage-c2: #17703b; }
 :root.dark[data-stage="site"] { --stage-c: #c15f3c; --stage-c2: #9e4a2d; }
