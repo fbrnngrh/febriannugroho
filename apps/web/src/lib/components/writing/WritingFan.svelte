@@ -8,58 +8,43 @@
   import CoverArt from "./CoverArt.svelte";
   import { coverOf, finePointer } from "./WritingRow.svelte";
 
-  // Writing on phones: a looping deck. The front card sits in the middle, the next ones peek behind it on the right,
-  // thrown ones (to either side) settle on a pile on the left. Wider screens use WritingRow.
+  // Writing on phones: a looping stack (molly.studio). The front card sits in the middle, the next ones peek out
+  // behind it on the right. Swiped either way, the front card swings out to that side and slides in behind the
+  // stack while the others step forward. Wider screens use WritingRow.
   let { posts }: { posts: PostSummary[] } = $props();
 
   let active = $state(0);
-  // the card on its way in or out (drag, throw, settle) rides above both piles
-  let lift = $state<number | null>(null);
   let released = $state(false);
   let fanEl = $state<HTMLElement>();
   let stackEl = $state<HTMLElement>();
   const n = $derived(posts.length);
   const mod = (i: number) => ((i % n) + n) % n;
-  // the loop: d runs from −L (bottom of the left pile) to n−1−L (back of the right peek)
-  const L = $derived(Math.floor((n - 1) / 2));
-  const dist = (i: number, a = active) => mod(i - a + L) - L;
+  // place in the stack: 0 is the front card, n − 1 the back one
+  const dist = (i: number, a = active) => mod(i - a);
 
-  // Pose per distance from the front (d = dist(index)). x = k × card width + px.
-  // Left pile (d < 0) mirrors the right peek: thin slivers behind the front card, not half a card hanging off the
-  // screen edge (owner, 27 Nov). A thrown card is lifted above the deck while it flies (lift), then tucks under.
-  // ±4 is the hidden end of the window.
-  type Pose = { k: number; px: number; r: number; s: number; o: number };
+  // Pose per place: three peek out on the right, the rest wait hidden behind the third.
+  type Pose = { x: number; r: number; s: number; o: number };
   const POSES: Pose[] = [
-    { k: 0, px: -48, r: -9, s: 0.85, o: 0 },
-    { k: 0, px: -48, r: -9, s: 0.85, o: 1 },
-    { k: 0, px: -34, r: -6, s: 0.9, o: 1 },
-    { k: 0, px: -18, r: -3, s: 0.95, o: 1 },
-    { k: 0, px: 0, r: 0, s: 1, o: 1 },
-    { k: 0, px: 18, r: 3, s: 0.95, o: 1 },
-    { k: 0, px: 34, r: 6, s: 0.9, o: 1 },
-    { k: 0, px: 48, r: 9, s: 0.85, o: 1 },
-    { k: 0, px: 48, r: 9, s: 0.85, o: 0 },
+    { x: 0, r: 0, s: 1, o: 1 },
+    { x: 18, r: 3, s: 0.95, o: 1 },
+    { x: 34, r: 6, s: 0.9, o: 1 },
+    { x: 48, r: 9, s: 0.85, o: 1 },
+    { x: 48, r: 9, s: 0.85, o: 0 },
   ];
-  const poseAt = (d: number) => POSES[Math.max(-4, Math.min(4, d)) + 4]!;
-  const restTransform = (d: number) => {
-    const p = poseAt(d);
-    return `translate(calc(var(--w) * ${p.k} + ${p.px}px), 0) rotate(${p.r}deg) scale(${p.s})`;
-  };
-  const zOf = (d: number) => 100 - Math.min(Math.abs(d), 9);
-  // the loop puts the last posts on the left pile before anything was read: keep it empty until the first move
-  let touched = $state(false);
+  const poseAt = (d: number) => POSES[Math.max(0, Math.min(POSES.length - 1, d))]!;
+  const poseTransform = (p: Pose, dx = 0, dr = 0) => `translate(${p.x + dx}px, 0) rotate(${p.r + dr}deg) scale(${p.s})`;
+  const restTransform = (d: number) => poseTransform(poseAt(d));
+  const zOf = (d: number) => 100 - Math.min(d, 9);
 
   // Gesture constants (px, ms)
   const SLOP = 6;
   const DIST = 0.35; // of the card width
   const FLICK = 0.11; // px/ms, average over the drag (Sonner)
   const RUBBER = 0.2;
-  const FLY = 280; // ms: a thrown card leaves the screen on its side, then tucks onto the left pile
+  const TILT = 10; // deg the front card leans per card width dragged
+  const APEX = 0.72; // of the card width: how far out a card swings before it goes behind
+  const BACK = 440; // ms: from the side into its new place
 
-  // Only the front cover plays: once when the deck is half in view, once per card the first time it comes to the
-  // front, and again on hover or keyboard focus. Covers that have not been at the front yet are armed (reset to
-  // frame 0) while the deck is still fading in and held paused behind it (CSS below), so a card reaching the
-  // front starts from frame 0 instead of snapping back from its final frame (EDITH review).
   let plays = $state<Record<string, number>>({});
   let delays = $state<Record<string, number>>({});
   let seen = false;
@@ -106,59 +91,53 @@
 
   const cards = () => [...(stackEl?.querySelectorAll<HTMLElement>(".post-card") ?? [])];
 
-  // A card crossing the loop's seam (pile bottom ↔ peek back, or a right throw landing on the pile) would sweep
-  // across the front: it jumps there unseen and fades in. Same strings Svelte renders, so its next write is a no-op.
-  function tuck(el: HTMLElement, d: number) {
-    el.style.transition = "none";
-    el.style.transform = restTransform(d);
-    el.style.opacity = "0";
-    void el.offsetWidth;
-    el.style.transition = "";
-    el.style.opacity = String(poseAt(d).o);
+  // A card going round the loop never cuts across the deck: on next it swings out to `side` above the stack, then
+  // slides in under it to the back; on previous the back card comes out from under the stack and lands on top.
+  // WAAPI over the rest pose Svelte already wrote, so it ends exactly there; the slot's z-index flips at the apex.
+  let flight: Animation[] = [];
+  const finishFlight = () => {
+    for (const f of flight) f.finish();
+    flight = [];
+  };
+
+  function swing(el: HTMLElement, from: string, fromO: number, side: 1 | -1, to: Pose, toBack: boolean, out: number) {
+    const total = out + BACK;
+    const k = out / total;
+    const apex = poseTransform({ x: side * el.offsetWidth * APEX, r: side * 12, s: 0.94, o: 1 });
+    const card = el.animate(
+      [
+        { transform: from, opacity: fromO, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
+        { transform: apex, opacity: 1, offset: k, easing: "cubic-bezier(0.32, 0.72, 0, 1)" },
+        { transform: poseTransform(to), opacity: to.o },
+      ],
+      { duration: total },
+    );
+    const [first, last] = toBack ? [200, 0] : [0, 200];
+    const z = el.parentElement!.animate(
+      [{ zIndex: first }, { zIndex: first, offset: k }, { zIndex: last, offset: k }, { zIndex: last }],
+      { duration: total },
+    );
+    // its own CSS transition stays off until the swing is over, or it would replay the jump underneath
+    card.onfinish = card.oncancel = () => (el.style.transition = "");
+    flight = [card, z];
   }
 
-  let flying: { el: HTMLElement; i: number; t: ReturnType<typeof setTimeout> } | null = null;
-  function land() {
-    if (!flying) return;
-    clearTimeout(flying.t);
-    const { el, i } = flying;
-    flying = null;
-    el.removeEventListener("transitionend", landed);
-    tuck(el, dist(i));
-    // once it has left the screen it belongs under the new front card, not lifted above it
-    if (lift === i) lift = null;
-  }
-  // lands when the flight ends, not on a clock: a slow frame (or a slowed-down replay) never cuts it short
-  const landed = (e: TransitionEvent) => e.target === flying?.el && e.propertyName === "transform" && land();
-
-  let settle: ReturnType<typeof setTimeout> | undefined;
-  // step: +1 next (both throws), −1 previous; `right` is the thrown card element, `side` the way it was thrown
-  // (−1 left, +1 right): it flies off that edge, then tucks onto the thin left pile behind the new front card
-  function go(step: 1 | -1, fromSwipe = false, right?: HTMLElement, side: 1 | -1 = 1) {
-    touched = true;
+  // step: +1 next, −1 previous. `from` is where a released drag left the front card and how long its swing out takes.
+  function go(step: 1 | -1, fromSwipe = false, side: 1 | -1 = -1, from?: { t: string; out: number }) {
     if (n < 2) return;
-    land();
+    finishFlight();
     const old = active;
+    const el = cards()[step > 0 ? old : mod(old - 1)]!;
+    const motion = !prefersReducedMotion();
+    if (motion) el.style.transition = "none";
     released = fromSwipe;
     active = mod(old + step);
-    lift = step > 0 ? old : active;
-    const all = cards();
-    for (let i = 0; i < n; i++) if (dist(i) !== dist(i, old) - step && all[i] !== right) tuck(all[i]!, dist(i));
-    if (right) {
-      // Svelte writes the card's pile pose on its next flush: write the flight after it
+    if (motion) {
       flushSync();
-      right.style.transition = `transform ${FLY}ms var(--ease-out)`;
-      right.style.transform = `translate(${side * (stackEl!.clientWidth / 2 + right.offsetWidth * 0.7)}px, 0) rotate(${side * -POSES[0]!.r}deg) scale(${POSES[0]!.s})`;
-      // fallback in case the transition never runs (tab hidden mid-flight)
-      flying = { el: right, i: old, t: setTimeout(land, FLY * 12) };
-      right.addEventListener("transitionend", landed);
+      if (step > 0) swing(el, from?.t ?? restTransform(0), 1, side, poseAt(n - 1), true, from?.out ?? 240);
+      else swing(el, restTransform(n - 1), poseAt(n - 1).o, side, POSES[0]!, false, 240);
     }
-    settleSoon();
     autoplay(200);
-  }
-  function settleSoon() {
-    clearTimeout(settle);
-    settle = setTimeout(() => (lift = null), 600);
   }
 
   // Cards follow the finger 1:1: transforms written on each card in the window, no Svelte state per move.
@@ -167,7 +146,6 @@
     x: number;
     y: number;
     t: number;
-    seed: number;
     dx: number;
     lastX: number;
     lastT: number;
@@ -181,24 +159,21 @@
   function down(e: PointerEvent) {
     if (drag || (e.pointerType === "mouse" && e.button !== 0)) return;
     swallow = false;
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, seed: 0, dx: 0, lastX: e.clientX, lastT: e.timeStamp, dir: 0, w: 0, all: [] };
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, dx: 0, lastX: e.clientX, lastT: e.timeStamp, dir: 0, w: 0, all: [] };
   }
 
-  // cards near the front: the ones a drag paints and a release hands back
-  const near = (all: HTMLElement[]) => all.filter((_, i) => Math.abs(dist(i)) <= 5);
+  // cards a drag paints and a release hands back
+  const near = (all: HTMLElement[]) => all.filter((_, i) => dist(i) < POSES.length);
 
   function lock(e: PointerEvent) {
     if (!drag || !stackEl) return;
     stackEl.setPointerCapture(drag.id);
-    land();
+    // a card still swinging to the back lands at once: the new front card is the one under the finger
+    finishFlight();
     const all = (drag.all = cards());
-    const front = all[active]!;
-    // a card pulled back from the pile and caught mid-flight stays where it is instead of snapping back to rest
-    drag.seed = Math.min(0, new DOMMatrix(getComputedStyle(front).transform).m41);
-    drag.w = front.offsetWidth;
+    drag.w = all[active]!.offsetWidth;
     for (const el of near(all)) el.style.transition = "none";
     drag.x = drag.lastX = e.clientX;
-    lift = active;
   }
 
   function move(e: PointerEvent) {
@@ -213,37 +188,31 @@
     }
     if (e.clientX !== drag.lastX) drag.dir = Math.sign(e.clientX - drag.lastX);
     drag.lastX = e.clientX;
-    drag.dx = e.clientX - drag.x + drag.seed;
+    drag.dx = e.clientX - drag.x;
     drag.lastT = e.timeStamp;
     paint(drag.all, drag.dx, drag.w);
   }
 
-  // Either way the deck advances by the drag's progress; the front card follows the finger, tilting toward it.
+  // The front card is the finger, leaning toward it; the cards behind step forward by the drag's progress.
   function paint(all: HTMLElement[], dx: number, w: number) {
-    let f = Math.abs(dx) / w;
-    let rubber = 0;
     // a single card has nowhere to go: it gives a little and stops
-    if (n < 2) {
-      rubber = dx * RUBBER;
-      f = 0;
-    } else if (f > 1) f = 1 + (f - 1) * RUBBER;
-    const reduce = prefersReducedMotion();
+    const x = n < 2 ? dx * RUBBER : dx;
+    const f = n < 2 ? 0 : Math.min(1, Math.abs(dx) / w);
+    // reduced motion: the card slides with the finger but does not tilt
+    const tilt = prefersReducedMotion() ? 0 : TILT;
     for (let i = 0; i < n; i++) {
-      const d0 = dist(i);
-      if (Math.abs(d0) > 5) continue;
-      const d = Math.max(-4, Math.min(4, d0 - f));
-      const lo = Math.floor(d);
-      const t = d - lo;
-      const a = poseAt(lo);
-      const b = poseAt(lo + 1);
-      const mix = (p: number, q: number) => p + (q - p) * t;
-      // thrown right, the front card takes the mirror image of its path to the left pile
-      const m = d0 === 0 && dx > 0 ? -1 : 1;
-      const x = m * mix(a.k * w + a.px, b.k * w + b.px) + (d0 === 0 ? rubber : 0);
-      // reduced motion: the card slides with the finger but does not tilt
-      const r = m * (reduce ? poseAt(Math.round(d)).r : mix(a.r, b.r));
-      all[i]!.style.transform = `translate(${x}px, 0) rotate(${r}deg) scale(${mix(a.s, b.s)})`;
-      all[i]!.style.opacity = String(mix(a.o, b.o));
+      const d = dist(i);
+      if (d >= POSES.length) continue;
+      const el = all[i]!;
+      if (d === 0) {
+        el.style.transform = poseTransform(POSES[0]!, x, (x / w) * tilt);
+        continue;
+      }
+      const p = poseAt(d);
+      const q = poseAt(d - 1);
+      const mix = (u: number, v: number) => u + (v - u) * f;
+      el.style.transform = `translate(${mix(p.x, q.x)}px, 0) rotate(${mix(p.r, q.r)}deg) scale(${mix(p.s, q.s)})`;
+      el.style.opacity = String(mix(p.o, q.o));
     }
   }
 
@@ -253,21 +222,22 @@
     drag = null;
     if (!all.length) return;
     swallow = true;
+    const ms = Math.max(1, e.timeStamp - t);
     // a finger held still before lifting is not a flick
-    const flick = e.timeStamp - lastT < 100 && Math.abs(dx) > 12 && Math.abs(dx) / (e.timeStamp - t) > FLICK;
+    const flick = e.timeStamp - lastT < 100 && Math.abs(dx) > 12 && Math.abs(dx) / ms > FLICK;
     const side = Math.sign(dx);
-    const thrown = e.type !== "pointercancel" && side !== 0 && (Math.abs(dx) > w * DIST || (flick && dir === side));
+    const thrown = n > 1 && e.type !== "pointercancel" && side !== 0 && (Math.abs(dx) > w * DIST || (flick && dir === side));
     const front = all[active]!;
-    const hand = near(all);
+    const hand = near(all).filter((el) => !thrown || el !== front);
     // hand the cards back to CSS: same strings Svelte renders, so a spring-back also gets its transition
     for (const el of hand) el.style.transition = "";
-    if (thrown) go(1, true, prefersReducedMotion() ? undefined : front, side > 0 ? 1 : -1);
-    else {
-      released = true;
-      settleSoon();
-    }
+    if (thrown) {
+      // the card keeps the speed it left the finger with on its way out to the side
+      const left = Math.max(0, w * APEX - Math.abs(dx));
+      const out = Math.round(Math.min(280, Math.max(140, left / Math.max(Math.abs(dx) / ms, 0.5))));
+      go(1, true, side > 0 ? 1 : -1, { t: front.style.transform, out });
+    } else released = true;
     for (const el of hand) {
-      if (el === flying?.el) continue;
       const d = dist(all.indexOf(el));
       el.style.transform = restTransform(d);
       el.style.opacity = String(poseAt(d).o);
@@ -281,12 +251,11 @@
     e.stopPropagation();
   }
 
-  // single-pointer alternative to the drag: a tap on a peeking card brings it forward
+  // single-pointer alternative to the drag: a tap on a peeking card sends the front one to the back
   function onclick(e: MouseEvent) {
     const front = cards()[active];
     if (!front || front.contains(e.target as Node)) return;
-    const r = front.getBoundingClientRect();
-    go(e.clientX < r.left + r.width / 2 ? -1 : 1);
+    go(1);
   }
 
   async function onkeydown(e: KeyboardEvent) {
@@ -335,7 +304,7 @@
         class="slot"
         data-reveal
         use:inview
-        style:z-index={i === lift && d <= 0 ? 120 : zOf(d)}
+        style:z-index={zOf(d)}
         style:--reveal-delay={d === 0 ? "0ms" : "60ms"}
       >
         <article
@@ -343,7 +312,7 @@
           class:released
           data-front={d === 0 || undefined}
           style:transform={restTransform(d)}
-          style:opacity={d < 0 && !touched ? 0 : poseAt(d).o}
+          style:opacity={poseAt(d).o}
           style:--cover-bg={cover.bg}
           style:--cover-accent={cover.accent}
           style:--play-delay="{delays[post.slug] ?? 0}ms"
@@ -391,7 +360,7 @@
 </div>
 
 <style>
-  /* full-bleed so the piles reach the screen edge, clipped here so the page never scrolls sideways */
+  /* full-bleed so a swinging card reaches the screen edge, clipped here so the page never scrolls sideways */
   .stack {
     position: relative;
     display: grid;
