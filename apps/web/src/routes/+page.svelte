@@ -229,6 +229,8 @@
     gap: 8px;
     translate: -50% 0;
   }
+  /* sits on the hero aura (#c4c1fb in light): --fg-muted is only 3.1:1 there */
+  .scroll-hint .label-mono-sm { color: var(--fg-default); }
   .scroll-line {
     width: 1px;
     height: 28px;
