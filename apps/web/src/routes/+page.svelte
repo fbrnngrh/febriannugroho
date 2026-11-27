@@ -265,7 +265,8 @@
   .experience div { display: grid; grid-template-columns: 120px 1fr; gap: 16px; font-size: 15px; line-height: 1.4; }
   .experience dt { color: var(--fg-muted); }
   .experience dd { margin: 0; }
-  .writing { display: grid; gap: 20px; }
+  /* the side cards of the fan peek past the viewport on phones: clip at the page edge */
+  .writing { display: grid; gap: 20px; overflow-x: clip; }
   .writing h2 { margin: 0 auto; }
   .writing-foot { display: grid; gap: 20px; justify-items: start; }
   .writing-foot p { margin: 0; }
