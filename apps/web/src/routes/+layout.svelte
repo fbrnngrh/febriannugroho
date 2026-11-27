@@ -46,12 +46,15 @@
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header class="site-header">
-  {#if !isHome}
-    <div class="page-nav"><SiteNav /></div>
-  {/if}
+<!-- Home's nav lives in the hero, so a header here would be an empty banner on desktop -->
+{#if isHome}
   <ExploreMenu />
-</header>
+{:else}
+  <header class="site-header">
+    <div class="page-nav"><SiteNav /></div>
+    <ExploreMenu />
+  </header>
+{/if}
 
 <main id="main" tabindex="-1">
   {@render children()}

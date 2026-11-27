@@ -189,7 +189,7 @@
     <p class="n-title"><span class="glyph solid">✓</span>fleet check</p>
     <p class="n-sub">deterministic checks per area</p>
     <p class="chips">
-      {#each ["lint", "types", "tests", "build"] as c, i (c)}<span class="chip" style:--i={i * 50}>{c}</span>{/each}
+      {#each ["lint", "types", "tests", "build"] as c, i (c)}<span class="chip" data-label={c} style:--i={i * 50}><span class="chip-t">{c}</span></span>{/each}
     </p>
     <p class="n-sub fail">fail → back to lead</p>
   </div>
@@ -203,22 +203,26 @@
     <p class="logos"><Logo name="docker" size={12} /><Logo name="easypanel" size={12} /></p>
   </div>
 
-  {#if !reduced}
-    <button
-      type="button"
-      class="icon-button map-pause"
-      aria-label={paused ? "Play fleet animation" : "Pause fleet animation"}
-      onclick={() => (paused = !paused)}
-    >
-      <Icon name={paused ? "play" : "pause"} size={12} />
-    </button>
-  {/if}
 
-  <ul class="legend" aria-label="Legend">
-    <li><span class="ln solid"></span>human gate</li>
-    <li><span class="ln dashed"></span>retro: findings become new checks</li>
-    <li><span class="ln green"></span>pass</li>
-  </ul>
+  <!-- pause sits in the legend row, clear of the nodes -->
+  <div class="map-foot">
+    <ul class="legend" aria-label="Legend">
+      <li><span class="ln solid"></span>human gate</li>
+      <li><span class="ln dashed"></span>retro: findings become new checks</li>
+      <li><span class="ln green"></span>pass</li>
+    </ul>
+    {#if !reduced}
+      <button
+        type="button"
+        class="icon-button map-pause"
+        aria-label={paused ? "Play fleet animation" : "Pause fleet animation"}
+        aria-pressed={paused}
+        onclick={() => (paused = !paused)}
+      >
+        <Icon name={paused ? "play" : "pause"} size={12} />
+      </button>
+    {/if}
+  </div>
 
   <dialog
     class="agent-card"
@@ -287,8 +291,21 @@
     color: inherit;
     font: inherit;
     text-align: left;
-    transition: box-shadow 240ms var(--ease-flow), background-color 240ms var(--ease-flow);
   }
+  /* step rings (T3, gate, ship) fade in as a layer: no box-shadow transition */
+  .node::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: var(--ring, none);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms var(--ease-flow);
+  }
+  .t3 { --ring: 0 0 0 3px color-mix(in srgb, var(--fleet-solid) 30%, transparent); }
+  .gate { --ring: 0 0 0 3px color-mix(in srgb, var(--line-strong) 25%, transparent); }
+  .ship { --ring: 0 0 0 2px var(--ci-solid), 0 8px 20px -8px color-mix(in srgb, var(--ci-solid) 40%, transparent); }
   .node p { margin: 0; }
   .n-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; line-height: 20px; }
   .n-sub { font: 11px/16px var(--font-mono); color: var(--fg-muted); overflow-wrap: anywhere; }
@@ -319,8 +336,19 @@
     background: var(--surface-muted);
     font: 11px/16px var(--font-mono);
     color: var(--fg-secondary);
-    transition: background-color 160ms var(--ease-flow), color 160ms var(--ease-flow);
   }
+  /* passed: green fill and text crossfade in over the grey ones */
+  .chip { position: relative; isolation: isolate; }
+  .chip::before, .chip::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 160ms var(--ease-flow);
+  }
+  .chip::before { content: ""; z-index: -1; background: var(--ci-subtle); }
+  .chip::after { content: attr(data-label); padding: inherit; color: var(--ci-text); }
+  .chip-t { transition: opacity 160ms var(--ease-flow); }
   :global(.open-ic) { margin-left: auto; color: var(--fg-faint); }
 
   /* agent nodes are buttons: overlay hover, 0.96 press */
@@ -334,7 +362,7 @@
     pointer-events: none;
     transition: opacity var(--dur-hover) var(--ease-out);
   }
-  button.node { transition: scale var(--dur-release) var(--ease-out), box-shadow 240ms var(--ease-flow); }
+  button.node { transition: scale var(--dur-release) var(--ease-out); }
   button.node:active { scale: 0.96; transition-duration: var(--dur-press); }
   @media (hover: hover) and (pointer: fine) {
     button.node:hover::before { opacity: 0.04; }
@@ -390,7 +418,6 @@
   .map[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 26px; }
   .map[data-step="6"] .p5 { animation: travel-y 320ms var(--ease-flow) both; --len: 44px; }
   .map:not(.running) .packet { animation-play-state: paused; }
-  .map-pause { position: absolute; top: 12px; right: 12px; z-index: 2; }
   @keyframes travel-x {
     0% { opacity: 0; translate: 0 0; }
     15% { opacity: 1; }
@@ -402,22 +429,25 @@
     100% { opacity: 0; translate: 0 var(--len); }
   }
   /* T3 ring at +240 ms, active agents, check chips at 2200 + 50 ms each, ship at 2900 */
-  .map[data-step="1"] .t3 { box-shadow: var(--shadow-node), 0 0 0 3px color-mix(in srgb, var(--fleet-solid) 30%, transparent); transition-delay: 240ms; }
-  .map[data-step="5"] .chip, .map[data-step="6"] .chip { background: var(--ci-subtle); color: var(--ci-text); transition-delay: calc(var(--i) * 1ms); }
-  .map[data-step="5"] .gate, .map[data-step="6"] .gate { box-shadow: var(--shadow-node), 0 0 0 3px color-mix(in srgb, var(--line-strong) 25%, transparent); }
-  .map[data-step="6"] .ship { box-shadow: 0 0 0 2px var(--ci-solid), 0 8px 20px -8px color-mix(in srgb, var(--ci-solid) 40%, transparent); transition-duration: 320ms; }
+  .map[data-step="1"] .t3::after { opacity: 1; transition-delay: 240ms; }
+  :is(.map[data-step="5"], .map[data-step="6"]) .chip::before,
+  :is(.map[data-step="5"], .map[data-step="6"]) .chip::after { opacity: 1; transition-delay: calc(var(--i) * 1ms); }
+  :is(.map[data-step="5"], .map[data-step="6"]) .chip-t { opacity: 0; transition-delay: calc(var(--i) * 1ms); }
+  .map[data-step="5"] .gate::after, .map[data-step="6"] .gate::after { opacity: 1; }
+  .map[data-step="6"] .ship::after { opacity: 1; transition-duration: 320ms; }
 
   .legend {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 20px;
-    justify-self: start;
-    margin: 28px 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
     font: 10px/1.4 var(--font-mono);
     color: var(--fg-muted);
   }
+  .map-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; margin-top: 28px; }
+  .map-pause { flex: none; }
   .legend li { display: flex; align-items: center; gap: 6px; }
   .ln { width: 16px; height: 0; border-top: 1px solid var(--line-strong); }
   .ln.dashed { border-top-style: dashed; border-color: var(--fleet-text); }
