@@ -214,7 +214,15 @@ export type Agent = {
 
 /** Only FRIDAY has final copy; the rest are placeholders (handoff 05 §4). */
 export const AGENTS: Record<AgentId, Agent> = {
-  JARVIS: { id: "JARVIS", role: "lead · orchestrator", model: "Opus", skills: ["Matt Pocock skills", "delegate_task"], logos: ["claude"] },
+  JARVIS: {
+    id: "JARVIS",
+    role: "lead · orchestrator",
+    summary: "Splits a spec into tickets, delegates each to a child agent, triages findings and ships without writing or committing code.",
+    model: "Claude Opus",
+    skills: ["grill", "spec", "tickets"],
+    run: ["$ spec: add account settings", "✓ 4 tickets · delegated in order", "→ all checks green · ready to ship"],
+    logos: ["claude"],
+  },
   FRIDAY: {
     id: "FRIDAY",
     role: "builds features",
@@ -225,7 +233,31 @@ export const AGENTS: Record<AgentId, Agent> = {
     run: ["$ task: add retry to uploads", "✓ 3 files changed · 18 tests pass", "→ handed to ULTRON for review"],
     logos: ["claude", "svelte", "laravel", "typescript"],
   },
-  ULTRON: { id: "ULTRON", role: "code review", logos: ["claude", "github"] },
-  EDITH: { id: "EDITH", role: "UI review · E2E", logos: ["claude", "tailwind"] },
-  KAREN: { id: "KAREN", role: "copy · docs", logos: ["antigravity"] },
+  ULTRON: {
+    id: "ULTRON",
+    role: "code review",
+    summary: "Reviews every code change read-only against repo standards, the spec and security checks, then posts the review.",
+    model: "Claude Opus",
+    skills: ["code-review", "insecure-defaults", "security-audit"],
+    run: ["$ review: PR adds settings page", "✓ standards · spec · auth checked", "→ 1 finding posted · read-only"],
+    logos: ["claude", "github"],
+  },
+  EDITH: {
+    id: "EDITH",
+    role: "UI review · E2E",
+    summary: "Reviews each screen read-only against an interface checklist and worst-case data, then runs the end-to-end gate.",
+    model: "Claude Opus",
+    skills: ["better-interface", "break-ui", "agent-browser"],
+    run: ["$ review: settings screen + E2E", "✓ checklist · worst-case data", "→ E2E gate passed · read-only"],
+    logos: ["claude", "tailwind"],
+  },
+  KAREN: {
+    id: "KAREN",
+    role: "copy · docs",
+    summary: "Drafts UI copy, release notes and QA test cases from named sources, marks missing facts to check and never commits.",
+    model: "Gemini 4 Neon · Antigravity",
+    skills: ["better-writing", "qa-docs", "release-notes"],
+    run: ["$ copy: release notes + QA cases", "✓ sourced · 1 missing fact flagged", "→ saved draft · no commit"],
+    logos: ["antigravity"],
+  },
 };
