@@ -56,12 +56,13 @@
   <div class="intro col-hero">
     <div class="identity step s0">
       <img src={PERSON.photo} alt={PERSON.name} width="40" height="40" class="avatar" />
-      <div>
+      <!-- the "Now" status is the third line of the same block, on the name's left edge -->
+      <div class="who">
         <h1 id="hero-name" class="name">{PERSON.name}</h1>
         <p class="role">{PERSON.role} · {PERSON.location}</p>
+        <StatusDot />
       </div>
     </div>
-    <div class="step s1"><StatusDot /></div>
     <p class="hero-line step s1">
       <span class="strong">Hi, I'm Febrian.</span> By day I
       <a class="text-link" href="/#work/dealer" onclick={openDealer}>ship business systems</a>
@@ -168,7 +169,10 @@
     padding-top: 96px;
     text-align: center;
   }
-  .identity { display: flex; align-items: center; gap: 12px; text-align: left; }
+  /* avatar sits beside the name and role; the status line runs under them */
+  .identity { display: flex; align-items: flex-start; gap: 12px; text-align: left; }
+  .who { display: grid; justify-items: start; }
+  .who :global(.status) { margin-top: 6px; }
   .avatar {
     width: 40px;
     height: 40px;
