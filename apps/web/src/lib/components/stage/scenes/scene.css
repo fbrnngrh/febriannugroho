@@ -1,0 +1,43 @@
+/* Shared by the 12 stage scenes (07-panggung-v3 §3). Colours come only from the chapter layer
+   (--s-* tokens set on .screen in VideoStage); motion primitives keep the hidden state in `from`,
+   so `animation: none` (no JS, reduced motion) shows each shot's final frame. */
+
+.scene { display: block; width: 100%; height: 100%; }
+.scene text { font-family: var(--font-sans); }
+.scene .mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+
+.scene .f-bg { fill: var(--s-bg); }
+.scene .f-soft { fill: var(--s-soft); }
+.scene .f-mid { fill: var(--s-mid); }
+.scene .f-acc { fill: var(--s-acc); }
+.scene .f-ink { fill: var(--s-ink); }
+.scene .f-muted { fill: var(--s-muted); }
+.scene .f-paper { fill: var(--s-paper); }
+.scene .f-onacc { fill: var(--s-on-acc); }
+.scene .f-ondeep { fill: var(--s-on-deep); }
+.scene .f-deep { fill: var(--s-deep); }
+.scene .s-soft { stroke: var(--s-soft); }
+.scene .s-mid { stroke: var(--s-mid); }
+.scene .s-acc { stroke: var(--s-acc); }
+.scene .s-ink { stroke: var(--s-ink); }
+.scene .s-onacc { stroke: var(--s-on-acc); }
+
+.scene .rise, .scene .pop, .scene .slide, .scene .draw {
+  animation-duration: var(--dur, 300ms);
+  animation-timing-function: var(--ease, var(--ease-out));
+  animation-delay: var(--d, 0ms);
+  animation-fill-mode: both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.scene .rise { animation-name: sc-rise; }
+.scene .pop { animation-name: sc-pop; }
+.scene .slide { animation-name: sc-slide; }
+.scene .draw { animation-name: sc-draw; }
+
+/* 07 §5 distances are in 960 units; scenes draw in Figma's 720 frame (× 0.75) */
+@keyframes sc-rise { from { opacity: 0; translate: 0 var(--y, 9px); } }
+@keyframes sc-pop { from { opacity: 0; scale: var(--s0, 0.96); } }
+@keyframes sc-slide { from { opacity: 0; translate: -12px 0; } }
+@keyframes sc-draw { from { clip-path: inset(0 100% 0 0); } }
+@keyframes sc-fade { from { opacity: 0; } }
