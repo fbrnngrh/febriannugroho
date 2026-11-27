@@ -9,6 +9,12 @@
 
 ### What's Done
 
+- [ ] **Live fixes · Panggung v3 (feat-016)** — 2026-11-27, branch `fix/live-stage-v3` from `origin/master` (`ebaacfe`), local only
+  - Stage: `VideoStage` rewritten (one clock, no slide UI, card = `<button aria-pressed>`, hover no longer pauses, resume from remaining time); 12 scenes in `components/stage/scenes/` from Figma 307:13632…309:13918; chapter colours as `@property` on `html[data-stage]` (600 ms), one glow set with mask edges, scroll-linked grow (+ IO fallback). StageScene, STAGE_SLIDES, SCENE_TEXT and unused stage tokens removed.
+  - Review items: carousel bleeds right from the text column with a mask (no `::after` box), real hover lift on work cards and the Writing fan, 16×6 pill dot, Email me in Contact, Writing/Tools/Selected work heading reveals, Stack fleet map with SVG connectors + fail loop + approve line + 10 s WAAPI timeline (fail path every third loop), missing card logos, GitHub graph on `contributionLevel` for 39 weeks, `04-motion.md` §1/§6/§9/§10.
+  - Verified: check-types, build, browser 1440/390/320 light+dark, chapter colour interpolation, fail path timing. Not verified: Safari/Firefox fallback, reduced motion in a browser, Chrome Performance recording.
+  - Waiting for Febrian: dark-mode scene colours (provisional), chapter-3 caption link, GitHub PAT/workflow and agent contributions, Email me also kept on the profile card, `/review-animations` run.
+
 - [x] **Portfolio redesign 2026 (feat-015)** — 2026-11-27, branch `redesign/portfolio-2026` (local only)
   - Handoff saved in `docs/redesign-handoff/` (Figma M4H1HkuEiWyZTToDQ6Iml2, page Hi-fi).
   - Dependencies updated; SvelteKit 3 migration (`sv migrate sveltekit-3`): config in `vite.config.ts`, `$lib` → `#lib`, mdsvex 1 as a Vite plugin. TypeScript stays 6.x (Kit 3 needs the TS 6 compiler API). `web` now has a real `check-types` script.
