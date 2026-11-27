@@ -42,8 +42,10 @@
   const FLICK = 0.11; // px/ms, average over the drag (Sonner)
   const RUBBER = 0.2;
   const TILT = 10; // deg the front card leans per card width dragged
-  const APEX = 0.72; // of the card width: how far out a card swings before it goes behind
-  const BACK = 440; // ms: from the side into its new place
+  const BACK = 420; // ms: from the side into its new place
+  // how far out a card swings before it goes under: clear of the stack (and the right peeks), so the z flip is unseen
+  const reach = (w: number, side: number) => w + (side > 0 ? POSES[3]!.x : 0);
+  const OUT_SLOPE = 3.5; // start slope of the swing-out curve below: its duration is set so it starts at the finger's speed
 
   let plays = $state<Record<string, number>>({});
   let delays = $state<Record<string, number>>({});
@@ -100,14 +102,16 @@
     flight = [];
   };
 
-  function swing(el: HTMLElement, from: string, fromO: number, side: 1 | -1, to: Pose, toBack: boolean, out: number) {
+  function swing(el: HTMLElement, from: string, fromO: number, side: 1 | -1, to: Pose, toBack: boolean, out: number, fromX = 0) {
     const total = out + BACK;
     const k = out / total;
-    const apex = poseTransform({ x: side * el.offsetWidth * APEX, r: side * 12, s: 0.94, o: 1 });
+    // a long drag already past the apex keeps going out instead of first easing back toward the middle
+    const apex = poseTransform({ x: side * Math.max(reach(el.offsetWidth, side), Math.abs(fromX)), r: side * 12, s: 0.94, o: 1 });
     const card = el.animate(
       [
         { transform: from, opacity: fromO, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
-        { transform: apex, opacity: 1, offset: k, easing: "cubic-bezier(0.32, 0.72, 0, 1)" },
+        // it turns around at rest, so the way back starts slow too: no jolt at the apex
+        { transform: apex, opacity: 1, offset: k, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
         { transform: poseTransform(to), opacity: to.o },
       ],
       { duration: total },
@@ -123,7 +127,7 @@
   }
 
   // step: +1 next, −1 previous. `from` is where a released drag left the front card and how long its swing out takes.
-  function go(step: 1 | -1, fromSwipe = false, side: 1 | -1 = -1, from?: { t: string; out: number }) {
+  function go(step: 1 | -1, fromSwipe = false, side: 1 | -1 = -1, from?: { t: string; out: number; x: number }) {
     if (n < 2) return;
     finishFlight();
     const old = active;
@@ -134,8 +138,8 @@
     active = mod(old + step);
     if (motion) {
       flushSync();
-      if (step > 0) swing(el, from?.t ?? restTransform(0), 1, side, poseAt(n - 1), true, from?.out ?? 240);
-      else swing(el, restTransform(n - 1), poseAt(n - 1).o, side, POSES[0]!, false, 240);
+      if (step > 0) swing(el, from?.t ?? restTransform(0), 1, side, poseAt(n - 1), true, from?.out ?? 260, from?.x);
+      else swing(el, restTransform(n - 1), poseAt(n - 1).o, side, POSES[0]!, false, 260);
     }
     autoplay(200);
   }
@@ -205,7 +209,7 @@
       if (d >= POSES.length) continue;
       const el = all[i]!;
       if (d === 0) {
-        el.style.transform = poseTransform(POSES[0]!, x, (x / w) * tilt);
+        el.style.transform = poseTransform(POSES[0]!, x, Math.max(-14, Math.min(14, (x / w) * tilt)));
         continue;
       }
       const p = poseAt(d);
@@ -233,9 +237,9 @@
     for (const el of hand) el.style.transition = "";
     if (thrown) {
       // the card keeps the speed it left the finger with on its way out to the side
-      const left = Math.max(0, w * APEX - Math.abs(dx));
-      const out = Math.round(Math.min(280, Math.max(140, left / Math.max(Math.abs(dx) / ms, 0.5))));
-      go(1, true, side > 0 ? 1 : -1, { t: front.style.transform, out });
+      const left = Math.max(0, reach(w, side) - Math.abs(dx));
+      const out = Math.round(Math.min(340, Math.max(180, (OUT_SLOPE * left) / Math.max(Math.abs(dx) / ms, 0.5))));
+      go(1, true, side > 0 ? 1 : -1, { t: front.style.transform, out, x: dx });
     } else released = true;
     for (const el of hand) {
       const d = dist(all.indexOf(el));
