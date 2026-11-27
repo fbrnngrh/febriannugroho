@@ -1,0 +1,45 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# One deploy at a time; a newer push to master replaces a queued one
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://febriannugroho.my.id
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - name: Check
+        run: bun run check-types
+
+      - name: Build
+        run: bun run build
+        env:
+          # Refreshes the contributions graph; the script falls back to the cached JSON on failure
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        working-directory: apps/web
+        run: bunx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

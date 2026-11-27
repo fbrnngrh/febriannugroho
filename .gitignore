@@ -55,3 +55,6 @@ coverage
 .cache
 tmp
 temp
+
+# Wrangler
+.wrangler
