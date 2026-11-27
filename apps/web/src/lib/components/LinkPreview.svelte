@@ -9,7 +9,7 @@
   let focus = $state(false);
   let dismissed = $state(false);
   const open = $derived((hover || focus) && !dismissed);
-  const id = `preview-${Math.random().toString(36).slice(2, 8)}`;
+  const id = $props.id();
 
   function onkeydown(e: KeyboardEvent) {
     if (e.key === "Escape" && open) dismissed = true;

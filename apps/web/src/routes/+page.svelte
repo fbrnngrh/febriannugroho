@@ -234,7 +234,7 @@
     height: 28px;
     background: var(--line-strong);
     transform-origin: top;
-    animation: scroll-line 2.4s var(--ease-in-out) infinite;
+    animation: scroll-line 2.4s var(--ease-in-out) 3; /* stops after 3 runs: WCAG 2.2.2 */
   }
   @keyframes scroll-line {
     0% { scale: 1 0; }

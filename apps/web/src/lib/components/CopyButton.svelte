@@ -16,6 +16,7 @@
 
   let state = $state<"idle" | "copied" | "failed">("idle");
   let timer: ReturnType<typeof setTimeout> | undefined;
+  $effect(() => () => clearTimeout(timer));
 
   async function copy() {
     clearTimeout(timer);
@@ -45,7 +46,7 @@
   <span>{state === "copied" ? "Copied" : label}</span>
 </button>
 <span class={state === "failed" ? "fail" : "sr-only"} role="status">
-  {state === "copied" ? "Copied" : state === "failed" ? "Couldn't copy. Select the text to copy it." : ""}
+  {state === "copied" ? "Copied" : state === "failed" ? variant === "code" ? "Couldn't copy. Select the text to copy it." : "Couldn't copy. Select the address to copy it." : ""}
 </span>
 
 <style>

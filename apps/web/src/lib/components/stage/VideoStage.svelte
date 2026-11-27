@@ -118,7 +118,7 @@
 
   <div class="col-stage inner">
     <div class="frame" style:--frame="var(--stage-glow-{tone})">
-      <div class="screen" aria-live={running ? "off" : "polite"}>
+      <div class="screen">
         {#key `${slide}-${shot}`}
           <div class="shot" in:shotIn out:shotOut>
             <StageScene {slide} {shot} />
@@ -169,6 +169,7 @@
           type="button"
           class="icon-button pause"
           aria-label={paused ? "Play showcase" : "Pause showcase"}
+          aria-pressed={paused}
           onclick={() => (paused = !paused)}
         >
           <Icon name={paused ? "play" : "pause"} size={12} />
@@ -274,7 +275,7 @@
     display: block;
     height: 2px;
     border-radius: var(--radius-xs);
-    background: var(--line-default);
+    background: var(--line-strong);
     overflow: hidden;
   }
   .fill {

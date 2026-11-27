@@ -61,6 +61,7 @@
       prose.querySelectorAll("pre").forEach((pre) => {
         const code = pre.querySelector("code")?.innerText ?? pre.innerText;
         pre.tabIndex = 0;
+        pre.setAttribute("role", "region");
         pre.setAttribute("aria-label", "Code sample");
         const slot = document.createElement("div");
         slot.className = "copy-slot";

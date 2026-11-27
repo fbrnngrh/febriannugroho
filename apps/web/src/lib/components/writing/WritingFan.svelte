@@ -246,7 +246,7 @@
     width: 6px;
     height: 6px;
     border-radius: 3px;
-    background: var(--line-default);
+    background: var(--line-strong);
     transition: scale var(--dur-card) var(--ease-out), background-color var(--dur-card) var(--ease-out);
   }
   .dot[aria-current="true"] span { background: var(--fg-default); scale: 3 1; }

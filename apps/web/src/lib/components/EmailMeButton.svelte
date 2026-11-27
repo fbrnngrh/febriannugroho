@@ -6,6 +6,7 @@
   let phase = $state<"idle" | "flying" | "done">("idle");
   let returned = $state(false);
   let timers: ReturnType<typeof setTimeout>[] = [];
+  $effect(() => () => timers.forEach(clearTimeout));
 
   function send() {
     if (phase !== "idle") return;
@@ -26,7 +27,7 @@
 
 <button type="button" class="email-me" data-phase={phase} data-returned={returned} onclick={send}>
   <span class="labels">
-    <span class="label idle">Email me</span>
+    <span class="label idle" aria-hidden={phase === "done"}>Email me</span>
     <span class="label done" aria-hidden={phase !== "done"}>
       <Icon name="check" size={14} class="tick" />
       Mail app opened

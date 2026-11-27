@@ -516,12 +516,12 @@ dialog.dragging[open]::backdrop { transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .link::after { scale: 1 1; opacity: 0; transition: opacity var(--dur-hover) ease-out; }
-  .press:active, .icon-button:active, .chip-button:active { scale: 1; }
+  .press:active, .icon-button:active:not(:disabled, [aria-disabled="true"]), .chip-button:active { scale: 1; }
   .js [data-reveal] { translate: none; filter: none; }
   .js [data-reveal].is-in { transition: opacity 200ms ease-out; transition-delay: 0ms; }
   dialog.modal, dialog.modal[open] { scale: 1; translate: 0 0; transition-property: opacity, overlay, display; }
   @starting-style { dialog.modal[open] { opacity: 0; scale: 1; translate: 0 0; } }
-  dialog.modal { opacity: 0; }
+  dialog.modal { opacity: 0; transition-duration: 150ms; transition-timing-function: var(--ease-out); }
   dialog.modal[open] { opacity: 1; transition-duration: 200ms; }
 }
 

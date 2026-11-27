@@ -51,7 +51,7 @@
 
 <div class="work">
   <div class="label-row col-text">
-    <h2 class="label-mono">Selected work <span class="hint">drag for more</span></h2>
+    <h2 class="label-mono">Selected work <span class="hint" aria-hidden="true">drag for more</span></h2>
     <div class="arrows">
       <button type="button" class="icon-button" aria-label="Previous project" aria-disabled={atStart} onclick={() => page(-1)}>
         <Icon name="arrow-left" size={14} />

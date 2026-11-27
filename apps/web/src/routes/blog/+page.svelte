@@ -110,6 +110,7 @@
     transition: background-color var(--dur-hover) var(--ease-out), color var(--dur-hover) var(--ease-out), scale var(--dur-release) var(--ease-out);
   }
   .filter:active { scale: 0.96; transition-duration: var(--dur-press); }
+  @media (prefers-reduced-motion: reduce) { .filter:active { scale: 1; } }
   .filter[aria-pressed="true"] { background: var(--surface-inverse); color: var(--fg-on-inverse); }
   @media (hover: hover) and (pointer: fine) {
     .filter[aria-pressed="false"]:hover { background: var(--surface-muted); color: var(--fg-default); }
