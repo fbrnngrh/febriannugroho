@@ -1,7 +1,9 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import { page } from "$app/state";
   import { AGENTS, type AgentId } from "#lib/content/site.ts";
   import { prefersReducedMotion } from "#lib/motion.ts";
+  import { isBackdropClick, openOverlay } from "#lib/overlay.ts";
   import { sheetDrag } from "#lib/sheet.ts";
   import AgentAvatar from "../AgentAvatar.svelte";
   import Icon from "../Icon.svelte";
@@ -75,6 +77,8 @@
     await tick();
     if (!card || !map) return;
     if (window.matchMedia("(max-width: 767.98px)").matches) {
+      // phone sheet gets a history entry so back closes it (03 §3)
+      await openOverlay({ agent: id });
       card.showModal();
     } else {
       const m = map.getBoundingClientRect();
@@ -95,7 +99,13 @@
     card?.close();
   }
 
+  // back button: the history entry is gone while the sheet is still open
+  $effect(() => {
+    if (!page.state.agent && card?.open && card.matches(":modal")) card.close();
+  });
+
   function onclose() {
+    if (page.state.agent) history.back();
     openAgent = null;
     trigger?.focus();
     trigger = null;
@@ -218,6 +228,7 @@
     data-side={cardPos.side}
     aria-labelledby="agent-title"
     {onclose}
+    onclick={(e) => card?.matches(":modal") && isBackdropClick(e, card) && hide()}
     {@attach sheetDrag(hide)}
   >
     {#if agent}

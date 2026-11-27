@@ -24,6 +24,7 @@ declare global {
       /** shallow-routing overlays: back closes them */
       explore?: boolean;
       project?: string;
+      agent?: string;
     }
     // interface Platform {}
   }

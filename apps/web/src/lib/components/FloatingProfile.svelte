@@ -11,9 +11,12 @@
   let root = $state<HTMLDivElement>();
   let emailEl = $state<HTMLElement>();
 
-  function close(returnFocus = true) {
+  // the trigger stays visibility:hidden until the DOM drops data-open, so focus after the update
+  async function close(returnFocus = true) {
     open = false;
-    if (returnFocus) trigger?.focus();
+    if (!returnFocus) return;
+    await tick();
+    trigger?.focus();
   }
 
   // the open card covers the trigger, so focus moves into it (Email me) and back on close

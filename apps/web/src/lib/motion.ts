@@ -27,7 +27,9 @@ export function prefersReducedMotion(): boolean {
 
 /** Smooth scroll to an element: 600 ms ease-in-out, or an instant jump under reduced motion. */
 export function scrollToElement(el: Element, duration = 600) {
-  const top = el.getBoundingClientRect().top + window.scrollY - 24;
+  // same offset as anchor jumps (html scroll-padding-top), so the fixed Explore button never covers the target
+  const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 24;
+  const top = el.getBoundingClientRect().top + window.scrollY - pad;
   if (prefersReducedMotion()) {
     window.scrollTo(0, top);
     return;

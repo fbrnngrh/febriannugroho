@@ -21,3 +21,10 @@ export function closeOverlay(key: keyof App.PageState) {
   url.hash = "";
   return goto(url.href, { shallow: true, replace: true, state: {}, reset: false });
 }
+
+/** A click on a modal dialog's ::backdrop targets the dialog itself, as does a click on its padding; only the first is outside its box. */
+export function isBackdropClick(e: MouseEvent, dialog: HTMLDialogElement | undefined) {
+  if (e.target !== dialog || !dialog) return false;
+  const r = dialog.getBoundingClientRect();
+  return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+}

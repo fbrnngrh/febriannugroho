@@ -3,7 +3,7 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { PROJECTS, type Project, type ProjectId } from "#lib/content/site.ts";
-  import { closeOverlay, openOverlay } from "#lib/overlay.ts";
+  import { closeOverlay, isBackdropClick, openOverlay } from "#lib/overlay.ts";
   import { sheetDrag } from "#lib/sheet.ts";
   import ArrowLink from "../ArrowLink.svelte";
   import Icon from "../Icon.svelte";
@@ -72,7 +72,7 @@
   }
 
   function onclick(e: MouseEvent) {
-    if (e.target === dialog) close(); // backdrop click
+    if (isBackdropClick(e, dialog)) close();
   }
 </script>
 
@@ -97,7 +97,7 @@
     </button>
     <div class="content" data-sheet-scroll>
       <p class="kicker">
-        <span class="tag accent" style:--a="var(--{shown.accent}-text)">● {d.tag}</span>
+        <span class="tag accent" style:--a="var(--{shown.accent}-text)"><span aria-hidden="true">●</span> {d.tag}</span>
         <span class="label-mono">{d.meta}</span>
         {#if d.draft}<span class="label-mono">· draft</span>{/if}
       </p>
