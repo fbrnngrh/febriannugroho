@@ -17,6 +17,7 @@
   import ProjectDialog from "#lib/components/work/ProjectDialog.svelte";
   import WorkCarousel from "#lib/components/work/WorkCarousel.svelte";
   import WritingFan from "#lib/components/writing/WritingFan.svelte";
+  import WritingRow from "#lib/components/writing/WritingRow.svelte";
   import { allPosts, getPost, postHref, shortReadingTime } from "#lib/content/posts.ts";
   import { ABOUT, DECISIONS, PERSON, TOOLS, WRITING_INTRO } from "#lib/content/site.ts";
 
@@ -50,7 +51,6 @@
 </svelte:head>
 
 <section class="hero" class:enter aria-labelledby="hero-name">
-  <div class="aura" aria-hidden="true"><span class="a1"></span><span class="a2"></span></div>
   <div class="hero-nav"><SiteNav /></div>
 
   <div class="intro col-hero">
@@ -112,7 +112,9 @@
   {#if fanPosts.length > 0}
     <section class="writing" aria-labelledby="writing-h">
       <h2 id="writing-h" class="label-mono col-text" data-reveal use:inview>Writing</h2>
-      <div class="col-wide"><WritingFan posts={fanPosts} /></div>
+      <!-- phones: the stacked fan; wider screens: a Molly-style row of every post -->
+      <div class="col-wide phone-only"><WritingFan posts={fanPosts} /></div>
+      <div class="wide-only"><WritingRow {posts} /></div>
       <div class="col-text writing-foot">
         <p class="body-text muted">{WRITING_INTRO}</p>
         <ArrowLink href={DECISIONS.writingPath} label="All writing" />
@@ -155,34 +157,6 @@
     overflow: clip;
   }
   .hero-nav { position: absolute; top: 32px; right: 40px; z-index: 2; }
-  .aura {
-    position: absolute;
-    inset: auto 0 0;
-    height: 58%;
-    z-index: -1;
-    pointer-events: none;
-    /* fade to the page before the hero's bottom edge, no divider line */
-    mask-image: linear-gradient(to bottom, transparent, #000 40%, #000 70%, transparent);
-  }
-  .aura span { position: absolute; border-radius: 50%; }
-  .a1 {
-    left: 8%;
-    bottom: -12%;
-    width: 76%;
-    height: 70%;
-    background: var(--stage-c);
-    opacity: var(--stage-glow-opacity-2);
-    filter: blur(90px);
-  }
-  .a2 {
-    left: 33%;
-    bottom: -10%;
-    width: 53%;
-    height: 58%;
-    background: var(--stage-c2);
-    opacity: var(--stage-glow-opacity-3);
-    filter: blur(160px);
-  }
   .intro {
     align-self: center;
     display: grid;
@@ -227,7 +201,7 @@
     gap: 8px;
     translate: -50% 0;
   }
-  /* sits on the hero aura (#c4c1fb in light): --fg-muted is only 3.1:1 there */
+  /* the stage glow reaches up behind it: --fg-muted drops to ~3:1 there */
   .scroll-hint .label-mono-sm { color: var(--fg-default); }
   .scroll-line {
     width: 1px;
@@ -243,11 +217,10 @@
     100% { scale: 1 0; transform-origin: bottom; }
   }
 
-  /* first-load entrance (Figma 88:5425): 0 / 100 ms (links sit inside the sentence), "Scroll" at 500 ms, aura fades 500 ms */
+  /* first-load entrance (Figma 88:5425): 0 / 100 ms (links sit inside the sentence), "Scroll" at 500 ms */
   .enter .step { animation: hero-in 300ms var(--ease-out) both; }
   .enter .s1 { animation-delay: 100ms; }
   .enter .s3 { animation: hero-fade 300ms var(--ease-out) 500ms both; }
-  .enter .aura { animation: hero-fade 500ms var(--ease-out) both; }
   @keyframes hero-in {
     from { opacity: 0; translate: 0 12px; filter: blur(4px); }
   }
@@ -268,8 +241,14 @@
   .experience dt { color: var(--fg-muted); }
   .experience dd { margin: 0; }
   /* the side cards of the fan peek past the viewport on phones: clip at the page edge */
-  .writing { display: grid; gap: 20px; overflow-x: clip; }
+  /* minmax(0, 1fr): the scrolling row must not widen the track and push the text column off-centre */
+  .writing { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; overflow-x: clip; }
   .writing h2 { margin: 0 auto; }
+  .wide-only { display: none; }
+  @media (min-width: 768px) {
+    .phone-only { display: none; }
+    .wide-only { display: block; }
+  }
   .writing-foot { display: grid; gap: 20px; justify-items: start; }
   .writing-foot p { margin: 0; }
   .muted { color: var(--fg-muted); }
