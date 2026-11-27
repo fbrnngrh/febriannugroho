@@ -8,18 +8,24 @@
 
   let dialog = $state<HTMLDialogElement>();
   let trigger = $state<HTMLButtonElement>();
+  let openedOn = "";
   const open = $derived(!!page.state.explore);
 
   // page.state is the single source: back button, Esc and Close all flow through it
   $effect(() => {
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) {
-      dialog.close();
-      // Safari never focuses a clicked button, so close() alone may leave focus on <body> (03 §3)
-      trigger?.focus();
+    if (open && !dialog.open) {
+      openedOn = page.url.pathname;
+      dialog.showModal();
     }
+    if (!open && dialog.open) dialog.close();
   });
+
+  // The close event fires after SvelteKit's popstate focus reset. Safari never focuses a clicked
+  // button, so close() alone can leave focus on <body>; a new page focuses its own <h1> (03 §3).
+  function onclose() {
+    if (page.url.pathname === openedOn) trigger?.focus();
+  }
 
   function oncancel(e: Event) {
     e.preventDefault();
@@ -61,7 +67,7 @@
   Explore
 </button>
 
-<dialog id="explore-menu" class="explore lock-scroll" bind:this={dialog} {oncancel} aria-label="Explore">
+<dialog id="explore-menu" class="explore lock-scroll" bind:this={dialog} {oncancel} {onclose} aria-label="Explore">
   <div class="panel">
     <button type="button" class="explore-button close" onclick={() => closeOverlay("explore")}>Close</button>
     <nav aria-label="Main">
