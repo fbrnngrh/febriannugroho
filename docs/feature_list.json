@@ -127,8 +127,8 @@
         "feat-005",
         "feat-012"
       ],
-      "status": "in_progress",
-      "evidence": "Dockerfile, nginx.conf, .dockerignore, docs/deployment.md added 2026-07-06; Easypanel build path documented as repo root; Docker unavailable locally, so image smoke test is pending"
+      "status": "removed",
+      "evidence": "Dockerfile, nginx.conf, .dockerignore and docs/deployment.md removed 2026-11-27 at Febrian's request (branch redesign/portfolio-2026). The nginx fallback for prerendered .html routes and the site 404 page went with them; the next host must serve /stack -> stack.html and 404.html itself."
     },
     {
       "id": "feat-014",

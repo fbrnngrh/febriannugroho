@@ -28,7 +28,7 @@
   - Theme toggle: Sun/Moon crossfade with rotate; GitHub calendar per-week wave fill on inview.
   - Verification: `bun run -F web check` — 0 errors, 0 warnings.
 
-- [ ] **Easypanel GitHub Dockerfile Deployment (feat-013)** — 2026-07-06
+- [x] ~~**Easypanel GitHub Dockerfile Deployment (feat-013)**~~ — 2026-07-06, **removed 2026-11-27** (Febrian's call): `Dockerfile`, `nginx.conf`, `.dockerignore` and `docs/deployment.md` are gone from `redesign/portfolio-2026`. The nginx fix for refresh-404s (`try_files $uri $uri.html`, `error_page 404 /404.html`, commit fa52518) went with them, so whichever host comes next must itself map `/stack` → `stack.html` (prerendered `.html` routes) and serve `404.html` for unknown paths. History below kept for reference.
   - Researched lightweight Easypanel GitHub-source deployment approach for a static SvelteKit monorepo: root Dockerfile + multi-stage Bun build + Nginx runtime.
   - Added `Dockerfile`, `nginx.conf`, and `.dockerignore`.
   - Documented Easypanel repo-root build path, port `80`, health check, and safe GitHub contribution cache handling in `docs/deployment.md`.
@@ -125,18 +125,17 @@
 
 ### What's In Progress
 
-- [ ] Verify Easypanel GitHub Dockerfile deployment (feat-013)
+- [ ] Pick a host; it must serve prerendered `.html` routes and `404.html` (the nginx config that did this was removed 2026-11-27)
 
 ### What's Next
 
-- Run `docker build -t febriannugroho-portfolio .` and a container smoke test in an environment with Docker installed
 - Replace placeholder project/social URLs with real links
 - Deploy static output to CDN
 
 ## Blockers / Risks
 
 - Redesign waits on Febrian: theme toggle (kept), /blog vs /writing (kept /blog), /contact (kept), stage scene language (English proposal, flagged), old 2025 posts (kept, `legacy: true`). Fonts now self-hosted via @fontsource-variable (approved 2026-11-27).
-- Not verified: real-phone gestures (sheet/fan drag at 120 Hz), VoiceOver/NVDA, forced-colors, 200% zoom, Lighthouse, `docker build`.
+- Not verified: real-phone gestures (sheet/fan drag at 120 Hz), VoiceOver/NVDA, forced-colors, 200% zoom, Lighthouse.
 - mdsvex + SvelteKit 5 compatibility — needs `bun run -F web check` verification
 - Prerendering of `[slug]` route depends on `entries()` function working correctly
 
