@@ -110,24 +110,22 @@
   .hint { margin-left: 12px; }
   .arrows { display: flex; gap: 12px; }
 
-  /* starts on the text column's left edge and runs out past the right edge of the screen (like Molly);
-     a mask fades the edge instead of a box painted in the page colour over the stage glow */
+  /* Full-bleed like Molly: the first card starts on the text column's left edge, cards scroll out past
+     both screen edges instead of being cut at the column, and the next card peeks on the right. */
   .viewport {
+    --start: max(var(--gutter), (100% - var(--col-text)) / 2);
     position: relative;
-    margin-inline-start: max(var(--gutter), (100% - var(--col-text)) / 2);
-    mask-image: linear-gradient(to right, #000 calc(100% - 96px), transparent);
   }
-  .viewport.at-end { mask-image: none; }
   .track {
     display: flex;
     gap: 16px;
     margin: 0;
     /* top/bottom room for the 4 px hover lift and its shadow */
-    padding: 8px var(--gutter) 24px 0;
+    padding: 8px var(--gutter) 24px var(--start);
     list-style: none;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 0;
+    scroll-padding-inline: var(--start) var(--gutter);
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     cursor: grab;
@@ -148,7 +146,8 @@
     :global(.js) .track:global(.revealed) li { transition: opacity 200ms ease-out; }
   }
   li {
-    flex: 0 0 min(420px, 82vw);
+    /* Molly-sized: about 2.5 cards across a wide screen */
+    flex: 0 0 clamp(280px, 40vw, 680px);
     scroll-snap-align: start;
   }
   .work-card {
