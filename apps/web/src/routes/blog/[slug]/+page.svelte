@@ -1,5 +1,6 @@
 <script lang="ts">
   import { mount, tick, unmount } from "svelte";
+  import { afterNavigate } from "$app/navigation";
   import { inview } from "#lib/actions/inview.ts";
   import ArrowLink from "#lib/components/ArrowLink.svelte";
   import BackLink from "#lib/components/BackLink.svelte";
@@ -15,6 +16,22 @@
   const PostComponent = $derived(data.PostComponent);
   const post = $derived(data.post);
   const ciProject = PROJECTS.find((p) => p.id === "ci-cd")!;
+
+  // Back goes where the reader came from: an article opened from Home returns to Home (to the same
+  // scroll spot via history), one opened from Writing or a direct link returns to Writing.
+  let fromHome = $state(false);
+  let previousIsHome = $state(false);
+  afterNavigate(({ from }) => {
+    const path = from?.url.pathname;
+    previousIsHome = path === "/";
+    // reading on to the next article keeps the way back to Home
+    if (!path?.startsWith(`${DECISIONS.writingPath}/`)) fromHome = previousIsHome;
+  });
+  function back(e: MouseEvent) {
+    if (!previousIsHome || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    history.back();
+  }
 
   const next = $derived.by(() => {
     const list = allPosts();
@@ -86,7 +103,7 @@
 
 <article class="article">
   <header class="col-text head">
-    <div data-reveal use:inview><BackLink href={DECISIONS.writingPath} label="Writing" /></div>
+    <div data-reveal use:inview><BackLink href={fromHome ? "/" : DECISIONS.writingPath} label={fromHome ? "Home" : "Writing"} onclick={back} /></div>
     <p class="meta" data-reveal use:inview style:--reveal-delay="100ms">
       {#each post.tags as t (t)}<span class="tag" class:shipping={t === "Shipping"}>{t}</span>{/each}
       <time datetime={post.date}>{formatDate(post.date)}</time> · {post.readingTime}
