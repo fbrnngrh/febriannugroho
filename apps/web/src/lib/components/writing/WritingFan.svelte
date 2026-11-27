@@ -48,14 +48,21 @@
   const RUBBER = 0.2;
 
   // Only the front cover plays: once when the deck is half in view, once per card the first time it comes to the
-  // front, and again on hover or keyboard focus.
+  // front, and again on hover or keyboard focus. Covers that have not been at the front yet are armed (reset to
+  // frame 0) while the deck is still fading in and held paused behind it (CSS below), so a card reaching the
+  // front starts from frame 0 instead of snapping back from its final frame (EDITH review).
   let plays = $state<Record<string, number>>({});
   let delays = $state<Record<string, number>>({});
   let seen = false;
   // bookkeeping only, nothing renders from it
   const played = new Set<string>();
 
+  // a replay inside the 1.4 s motion budget would restart a running cover from frame 0
+  const lastPlay: Record<string, number> = {};
   function replay(slug: string, delay = 0) {
+    const now = performance.now();
+    if (now - (lastPlay[slug] ?? -1e4) < 1400) return;
+    lastPlay[slug] = now;
     delays[slug] = delay;
     plays[slug] = (plays[slug] ?? 0) + 1;
   }
@@ -64,7 +71,13 @@
     const slug = posts[active]?.slug;
     if (!seen || !slug || played.has(slug)) return;
     played.add(slug);
+    // already armed and paused: becoming the front card resumes it from frame 0
+    if (plays[slug]) return;
     replay(slug, delay);
+  }
+
+  function arm() {
+    for (const post of posts) if (post.slug !== posts[active]?.slug && !plays[post.slug]) replay(post.slug, 200);
   }
 
   function observe(stack: HTMLElement) {
@@ -74,6 +87,7 @@
         io.disconnect();
         seen = true;
         autoplay(150);
+        arm();
       },
       { threshold: 0.5 },
     );
@@ -363,6 +377,7 @@
     pointer-events: none;
     transition: opacity var(--dur-card) var(--ease-out);
   }
+  .post-card:not([data-front]) :global(.art *) { animation-play-state: paused; }
   .post-card[data-front]:has(a):active::before { opacity: 0.08; transition-duration: var(--dur-press); }
   /* every front card answers hover, "coming soon" ones too (without the link's pointer) */
   @media (hover: hover) and (pointer: fine) {
