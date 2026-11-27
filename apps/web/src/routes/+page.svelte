@@ -164,10 +164,10 @@
   .intro {
     align-self: center;
     display: grid;
-    justify-items: center;
+    justify-items: start;
     gap: 28px;
     padding-top: 96px;
-    text-align: center;
+    text-align: start;
   }
   /* avatar sits beside the name and role; the status line runs under them */
   .identity { display: flex; align-items: flex-start; gap: 12px; text-align: left; }
@@ -185,19 +185,17 @@
   .role { margin: 0; font-size: 15px; line-height: 1.4; color: var(--fg-muted); }
   .hero-line {
     margin: 0;
-    font-size: 24px;
+    font-size: clamp(1.5rem, 1rem + 2.2vw, 2.5rem);
     font-weight: 500;
-    line-height: 34px;
-    letter-spacing: -0.01em;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
     color: var(--fg-muted);
+    /* balance: even lines, no lone "with me." at the end or stray "a" at a line end */
     text-wrap: balance;
   }
   .strong { color: var(--fg-default); }
-  @media (min-width: 768px) {
-    .hero-line { font-size: 30px; line-height: 1.24; letter-spacing: -0.015em; }
-  }
   @media (min-width: 1100px) {
-    .hero-line { font-size: 40px; line-height: 1.2; letter-spacing: -0.02em; }
+    .hero-line { line-height: 1.2; letter-spacing: -0.02em; }
   }
   .scroll-hint {
     position: absolute;
@@ -274,7 +272,6 @@
   @media (max-width: 767.98px) {
     .hero-nav { display: none; }
     .intro { gap: 24px; padding-top: 64px; }
-    .identity { text-align: left; }
     .sections { gap: 80px; }
     .experience div { grid-template-columns: 96px 1fr; }
   }
