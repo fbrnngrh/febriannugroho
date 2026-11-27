@@ -6,11 +6,6 @@
 export const DECISIONS = {
   /** §4.2 Writing route. Keep "/blog" until Febrian picks "/writing" (+ redirect). */
   writingPath: "/blog",
-  /**
-   * §4.4 Stage scene language. Proposed English translations are used and flagged
-   * (see STAGE_SCENE_TEXT below); the original Indonesian text sits next to each one.
-   */
-  stageSceneLanguage: "en-proposed" as "en-proposed" | "id",
   /** §4.5 Old 2025 posts (React 19, Next.js 16, Tailwind OKLCH). Kept visible until decided. */
   showLegacyPosts: true,
 } as const;
@@ -27,9 +22,10 @@ export const PERSON = {
 } as const;
 
 export const SOCIALS = [
-  { label: "GitHub", short: "GH", href: "https://github.com/fbrnngrh" },
-  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/" },
-  { label: "Threads", short: "Th", href: "https://www.threads.net/@febriannugroho.dev" },
+  // preview: screenshot name in /images/previews/<preview>.webp, shown on hover/focus
+  { label: "GitHub", short: "GH", href: "https://github.com/fbrnngrh", preview: "github" },
+  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/", preview: "linkedin" },
+  { label: "Threads", short: "Th", href: "https://www.threads.net/@febriannugroho.dev", preview: "threads" },
   { label: "Instagram", short: "IG", href: "https://www.instagram.com/febriannugroho.dev" },
 ] as const;
 
@@ -140,8 +136,8 @@ export const PROJECTS: Project[] = [
 
 export const ABOUT = {
   experience: [
-    { years: "2024–now", role: "Software engineer, Trio Motor" },
-    { years: "2023–2024", role: "Programmer intern, Trio Motor" },
+    { years: "2024–now", role: "Software engineer", company: "Trio Motor" },
+    { years: "2023–2024", role: "Programmer intern", company: "Trio Motor" },
   ],
 };
 
@@ -150,33 +146,24 @@ export const WRITING_INTRO = "Notes from shipping systems at work and running an
 export const WRITING_FILTERS = ["All", "Shipping", "Agents", "Design"] as const;
 export type WritingTag = (typeof WRITING_FILTERS)[number];
 
-/** Posts in the design that have no body in the repo yet (placeholder, handoff 05 §4). */
-export const PLANNED_POSTS = [
-  {
-    slug: "redesigning-this-site-with-claude",
-    title: "Redesigning this site with Claude",
-    description: "What I learned designing in Figma with an agent and a set of design skills.",
-    date: "2026-11-18",
-    readingTime: "5 min",
-    tags: ["Design"],
-  },
-  {
-    slug: "how-my-agent-fleet-ships-code",
-    title: "How my agent fleet ships code",
-    description: "Planning, building, reviewing and testing with agents while I orchestrate.",
-    date: "2026-11-04",
-    readingTime: "7 min",
-    tags: ["Agents"],
-  },
-] as const;
+/** Posts in the design that have no body in the repo yet (placeholder, handoff 05 §4). Both earlier
+ *  placeholders are published now (content/blog); add an entry here to show a "coming soon" card. */
+export const PLANNED_POSTS: readonly {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  readingTime: string;
+  tags: readonly string[];
+}[] = [];
 
 export const TOOLS = [
-  { name: "T3 Code", logo: "t3code" },
-  { name: "Claude", logo: "claude" },
-  { name: "Antigravity", logo: "antigravity" },
-  { name: "SvelteKit", logo: "svelte" },
-  { name: "Docker + EasyPanel", logo: "docker", logo2: "easypanel" },
-  { name: "Figma", logo: "figma" },
+  { name: "T3 Code", logo: "t3code", href: "https://t3.codes", preview: "t3code" },
+  { name: "Claude", logo: "claude", href: "https://claude.ai", preview: "claude" },
+  { name: "Antigravity", logo: "antigravity", href: "https://antigravity.google", preview: "antigravity" },
+  { name: "SvelteKit", logo: "svelte", href: "https://svelte.dev/docs/kit", preview: "sveltekit" },
+  { name: "Docker + EasyPanel", logo: "docker", logo2: "easypanel", href: "https://easypanel.io", preview: "easypanel" },
+  { name: "Figma", logo: "figma", href: "https://www.figma.com", preview: "figma" },
 ] as const;
 
 export const KIT = [
@@ -189,58 +176,28 @@ export const KIT = [
 
 export const FOOTER = "Built with SvelteKit. Designed with Claude and a few design skills.";
 
-export type StageSlide = {
-  title: string;
-  caption: string;
-  link?: { label: string; href: string };
-  /** one tone per shot: drives page glow, segment accent and tint */
-  tones: ["merged" | "fail" | "pass" | "claude", ...("merged" | "fail" | "pass" | "claude")[]];
-};
-
-export const STAGE_SLIDES: StageSlide[] = [
+/** Stage chapters (07-panggung-v3 §3). Shots live in components/stage/VideoStage.svelte; tone = html[data-stage]. */
+export const STAGE_CHAPTERS = [
   {
+    id: "fleet",
     title: "Fleet workflow",
     caption: "From an issue to a shipped PR: agents build and review, I approve the spec and the release.",
     link: { label: "Full fleet map", href: "/stack" },
-    tones: ["merged", "merged", "merged", "merged"],
   },
   {
+    id: "ci",
     title: "CI/CD pipeline",
     caption: "Every change goes through the same checks, a Docker build and a deploy on EasyPanel.",
-    tones: ["fail", "pass", "pass", "pass"],
   },
   {
-    title: "Agent orchestration",
-    caption: "One lead agent splits the work, four agents build, review, test and write docs.",
-    link: { label: "Full fleet map", href: "/stack" },
-    tones: ["claude", "claude", "claude", "claude"],
+    id: "site",
+    title: "How this site was built",
+    caption: "Designed in Figma, built with SvelteKit, shipped in PR #1 and deployed to Cloudflare in PR #2.",
+    // link to the Redesigning post: proposed only, waiting for Febrian (07 §10)
   },
-];
+] as const satisfies readonly { id: string; title: string; caption: string; link?: { label: string; href: string } }[];
 
-/**
- * Text inside the stage scenes. Figma has it in Indonesian; the site is English.
- * PROPOSED translations (handoff 05 §1, awaiting Febrian, §4.4). Flip DECISIONS.stageSceneLanguage to "id".
- */
-const SCENE_TEXT = {
-  assigned: { en: "Assigned to JARVIS", id: "Ditugaskan ke JARVIS" },
-  issueBody: {
-    en: "Replace the static showcase with a stage that plays on its own, like a short video that keeps changing.",
-    id: "Ganti showcase statis dengan panggung yang berjalan sendiri, seperti video pendek yang terus berganti.",
-  },
-  merged: { en: "Merged", id: "Merged" },
-  passed: { en: "passed", id: "lulus" },
-  failed: { en: "Failed", id: "Gagal" },
-  allPassed: { en: "All checks passed", id: "Semua cek lulus" },
-  deployed: { en: "Deployed from main", id: "Deploy dari main" },
-  parallel: { en: "Four tasks running in parallel", id: "Empat tugas jalan bersamaan" },
-  running: { en: "Running", id: "Berjalan" },
-  done: { en: "Done", id: "Selesai" },
-  ready: { en: "Ready for your review", id: "Siap untuk review kamu" },
-} as const;
-
-export function sceneText(key: keyof typeof SCENE_TEXT): string {
-  return SCENE_TEXT[key][DECISIONS.stageSceneLanguage === "id" ? "id" : "en"];
-}
+export type StageChapterId = (typeof STAGE_CHAPTERS)[number]["id"];
 
 export type AgentId = "JARVIS" | "FRIDAY" | "ULTRON" | "EDITH" | "KAREN";
 
@@ -257,7 +214,15 @@ export type Agent = {
 
 /** Only FRIDAY has final copy; the rest are placeholders (handoff 05 §4). */
 export const AGENTS: Record<AgentId, Agent> = {
-  JARVIS: { id: "JARVIS", role: "lead · orchestrator", model: "Opus", skills: ["Matt Pocock skills", "delegate_task"], logos: ["claude"] },
+  JARVIS: {
+    id: "JARVIS",
+    role: "lead · orchestrator",
+    summary: "Splits a spec into tickets, delegates each to a child agent, triages findings and ships without writing or committing code.",
+    model: "Claude Opus",
+    skills: ["grill-with-docs", "to-spec", "to-tickets"],
+    run: ["$ spec: add account settings", "✓ 4 tickets · delegated in order", "→ all checks green · ready to ship"],
+    logos: ["claude"],
+  },
   FRIDAY: {
     id: "FRIDAY",
     role: "builds features",
@@ -266,9 +231,33 @@ export const AGENTS: Record<AgentId, Agent> = {
     stack: ["SvelteKit", "Laravel", "TypeScript"],
     skills: ["tdd", "codebase-design", "prototype"],
     run: ["$ task: add retry to uploads", "✓ 3 files changed · 18 tests pass", "→ handed to ULTRON for review"],
-    logos: ["claude", "svelte"],
+    logos: ["claude", "svelte", "laravel", "typescript"],
   },
-  ULTRON: { id: "ULTRON", role: "code review", logos: ["claude"] },
-  EDITH: { id: "EDITH", role: "UI review · E2E", logos: ["claude"] },
-  KAREN: { id: "KAREN", role: "copy · docs", logos: ["antigravity"] },
+  ULTRON: {
+    id: "ULTRON",
+    role: "code review",
+    summary: "Reviews every code change read-only against repo standards, the spec and security checks, then posts the review.",
+    model: "Claude Opus",
+    skills: ["code-review", "insecure-defaults", "security-audit"],
+    run: ["$ review: PR adds settings page", "✓ standards · spec · auth checked", "→ 1 finding posted · read-only"],
+    logos: ["claude", "github"],
+  },
+  EDITH: {
+    id: "EDITH",
+    role: "UI review · E2E",
+    summary: "Reviews each screen read-only against an interface checklist and worst-case data, then runs the end-to-end gate.",
+    model: "Claude Opus",
+    skills: ["better-interface", "break-ui", "agent-browser"],
+    run: ["$ review: settings screen + E2E", "✓ checklist · worst-case data", "→ E2E gate passed · read-only"],
+    logos: ["claude", "tailwind"],
+  },
+  KAREN: {
+    id: "KAREN",
+    role: "copy · docs",
+    summary: "Drafts UI copy, release notes and QA test cases from named sources, marks missing facts to check and never commits.",
+    model: "Gemini 4 Neon · Antigravity",
+    skills: ["better-writing", "fleet-e2e-cases"],
+    run: ["$ copy: release notes + QA cases", "✓ sourced · 1 missing fact flagged", "→ saved draft · no commit"],
+    logos: ["antigravity"],
+  },
 };

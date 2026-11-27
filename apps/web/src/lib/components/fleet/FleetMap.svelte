@@ -9,21 +9,69 @@
   import Icon from "../Icon.svelte";
   import Logo from "../Logo.svelte";
 
-  // Fleet map (Figma 104:2817, phone 103:2047, motion 105:6878 / 04-motion.md §10).
-  // One ~6 s loop expressed as steps 0 (Diam) … 6 (Ship); CSS does each element's motion.
-  const TIMELINE: [number, number][] = [
-    [0, 1], // packet Task → T3 Code; T3 ring at +240
-    [560, 2], // packet T3 → JARVIS
-    [1040, 3], // 4 packets JARVIS → agents, agents active at +40
-    [2000, 4], // merge
-    [2200, 5], // check chips + approve line
-    [2900, 6], // ship
-    [4800, 0], // reset
+  // Fleet map (Figma 67:1511 / 104:2817, phone 103:2047, review §6 · 04-motion.md §10).
+  // A 10 s loop: phases set data-step / data-check for the CSS states (rings, avatars, chips);
+  // packets ride the SVG connectors with the Web Animations API, so pausing is anim.pause().
+  // Every third loop takes the fail path: "tests" goes red and the packet returns to JARVIS.
+  type Phase = { at: number; step: number; check?: "pass" | "fail"; edges?: string[] };
+  type Packet = { edge: string; at: number; dur: number; tone?: "fail" | "pass" | "gate" };
+  const STAGGER = [0, 80, 140, 180];
+  const START: Phase[] = [
+    { at: 0, step: 1, edges: ["trigger"] },
+    { at: 800, step: 2 },
+    { at: 1400, step: 2, edges: ["run"] },
+    { at: 2300, step: 3, edges: ["d0", "d1", "d2", "d3"] },
+    { at: 3400, step: 4 },
+    { at: 5600, step: 5, edges: ["m0", "m1", "m2", "m3", "trunk"] },
   ];
-  const LOOP_MS = 6000;
+  const START_PACKETS: Packet[] = [
+    { edge: "trigger", at: 0, dur: 800 },
+    { edge: "run", at: 1400, dur: 900 },
+    ...STAGGER.map((s, i) => ({ edge: `d${i}`, at: 2400 + s, dur: 1000 })),
+    ...STAGGER.map((_, i) => ({ edge: `mp${i}`, at: 5600, dur: 900 })),
+  ];
+  const LOOPS = {
+    pass: {
+      length: 10000,
+      phases: [
+        ...START,
+        { at: 6500, step: 6, check: "pass" },
+        { at: 7300, step: 7, check: "pass", edges: ["approve", "pass"] },
+        { at: 8000, step: 8, check: "pass" },
+        { at: 9200, step: 0 },
+      ] as Phase[],
+      packets: [...START_PACKETS, { edge: "pass", at: 7200, dur: 800, tone: "pass" }, { edge: "approve", at: 7300, dur: 700, tone: "gate" }] as Packet[],
+    },
+    fail: {
+      length: 11500,
+      phases: [
+        ...START,
+        { at: 6500, step: 6, check: "fail" },
+        { at: 6900, step: 9, check: "fail", edges: ["fail"] },
+        { at: 7800, step: 3 },
+        { at: 8200, step: 6, check: "pass" },
+        { at: 8800, step: 7, check: "pass", edges: ["approve", "pass"] },
+        { at: 9500, step: 8, check: "pass" },
+        { at: 10700, step: 0 },
+      ] as Phase[],
+      packets: [
+        ...START_PACKETS,
+        { edge: "fail", at: 6900, dur: 900, tone: "fail" },
+        { edge: "pass", at: 8700, dur: 800, tone: "pass" },
+        { edge: "approve", at: 8800, dur: 700, tone: "gate" },
+      ] as Packet[],
+    },
+  };
+  const PACKET_EDGES = ["trigger", "run", "d0", "d1", "d2", "d3", "mp0", "mp1", "mp2", "mp3", "fail", "pass", "approve"];
   const WORKERS: AgentId[] = ["FRIDAY", "ULTRON", "EDITH", "KAREN"];
 
   let step = $state(0);
+  let check = $state<"" | "pass" | "fail">("");
+  let activeEdges = $state<string[]>([]);
+  let wires = $state<Record<string, string>>({});
+  let size = $state({ w: 0, h: 0 });
+  let labels = $state({ fail: { x: 0, y: 0 }, approve: { x: 0, y: 0 } });
+  const packetEls: Record<string, HTMLElement> = {};
   let visible = $state(false);
   let hovering = $state(false);
   let focusedWithin = $state(false);
@@ -58,22 +106,145 @@
     };
   });
 
-  // restart the loop from step 0 whenever it resumes
+  // Connectors: one SVG behind the cards, measured from the cards themselves (orthogonal, 8 px corners).
+  function measure() {
+    if (!map) return;
+    const m = map.getBoundingClientRect();
+    const ox = m.left + map.clientLeft;
+    const oy = m.top + map.clientTop;
+    const q = (k: string) => map!.querySelector<HTMLElement>(`[data-node="${k}"]`);
+    const box = (el: HTMLElement | null) => {
+      const r = el!.getBoundingClientRect();
+      return { l: r.left - ox, r: r.right - ox, t: r.top - oy, b: r.bottom - oy, cx: (r.left + r.right) / 2 - ox, cy: (r.top + r.bottom) / 2 - oy };
+    };
+    const task = box(q("task")), t3 = box(q("t3")), gate = box(q("gate")), jarvis = box(q("jarvis"));
+    const chk = box(q("check")), ship = box(q("ship"));
+    const agents = WORKERS.map((w) => box(q(w)));
+    const w = map.clientWidth, h = map.clientHeight;
+    // phones stack the top row and wrap the agents in two rows
+    const link = (a: typeof task, b: typeof task) => (b.l >= a.r ? path([a.r, a.cy], [b.l, a.cy]) : path([a.cx, a.b], [a.cx, b.t]));
+    const stacked = t3.l < task.r;
+    const firstRow = agents.filter((a) => Math.abs(a.t - agents[0]!.t) < 4);
+    const lastRow = agents.filter((a) => Math.abs(a.t - agents[agents.length - 1]!.t) < 4);
+    const busD = (jarvis.b + firstRow[0]!.t) / 2;
+    const busM = (lastRow[0]!.b + chk.t) / 2;
+    const leftX = Math.min(task.l, chk.l, jarvis.l) - 12;
+    const rightX = Math.max(gate.r, ship.r) + 12;
+    const next: Record<string, string> = {
+      trigger: link(task, t3),
+      spec: link(t3, gate),
+      run: stacked ? path([gate.cx, gate.b], [gate.cx, jarvis.t]) : path([t3.cx, t3.b], [t3.cx, jarvis.t]),
+      trunk: path([chk.cx, busM], [chk.cx, chk.t]),
+      pass: path([chk.cx, chk.b], [ship.cx, ship.t]),
+      fail: path([chk.l, chk.cy], [leftX, chk.cy], [leftX, jarvis.cy], [jarvis.l, jarvis.cy]),
+      approve: path([gate.r, gate.cy], [rightX, gate.cy], [rightX, ship.cy], [ship.r, ship.cy]),
+    };
+    agents.forEach((a, i) => {
+      if (firstRow.includes(a)) next[`d${i}`] = path([jarvis.cx, jarvis.b], [jarvis.cx, busD], [a.cx, busD], [a.cx, a.t]);
+      if (lastRow.includes(a)) {
+        next[`m${i}`] = path([a.cx, a.b], [a.cx, busM], [chk.cx, busM]);
+        next[`mp${i}`] = path([a.cx, a.b], [a.cx, busM], [chk.cx, busM], [chk.cx, chk.t]);
+      }
+    });
+    wires = next;
+    size = { w, h };
+    labels = { fail: { x: leftX + 6, y: chk.cy - 7 }, approve: { x: rightX - 6, y: ship.cy - 7 } };
+  }
+
+  /** Orthogonal polyline with 8 px rounded corners. */
+  function path(...pts: [number, number][]) {
+    const R = 8;
+    let d = `M${pts[0]![0]} ${pts[0]![1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const [x, y] = pts[i]!;
+      const nxt = pts[i + 1];
+      if (!nxt) {
+        d += ` L${x} ${y}`;
+        break;
+      }
+      const [px, py] = pts[i - 1]!;
+      const r1 = Math.min(R, Math.hypot(x - px, y - py) / 2, Math.hypot(nxt[0] - x, nxt[1] - y) / 2);
+      const ax = x - Math.sign(x - px) * r1, ay = y - Math.sign(y - py) * r1;
+      const bx = x + Math.sign(nxt[0] - x) * r1, by = y + Math.sign(nxt[1] - y) * r1;
+      d += ` L${ax} ${ay} Q${x} ${y} ${bx} ${by}`;
+    }
+    return d;
+  }
+
+  $effect(() => {
+    if (!map) return;
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(map);
+    return () => ro.disconnect();
+  });
+
+  // One clock: phases switch CSS states, packets are WAAPI animations started with the loop and paused with it.
+  let clock = 0;
+  let loopIndex = 0;
+  let anims: Animation[] = [];
+  const REST: Phase = { at: 0, step: 0 };
+  let lastPhase: Phase | null = null;
+  const currentLoop = () => (loopIndex % 3 === 2 ? LOOPS.fail : LOOPS.pass);
+
+  function startLoop() {
+    anims.forEach((a) => a.cancel());
+    const loop = currentLoop();
+    anims = loop.packets.flatMap(({ edge, at, dur, tone }) => {
+      const el = packetEls[edge];
+      if (!el || !wires[edge]) return [];
+      el.dataset.tone = tone ?? "";
+      return [
+        el.animate(
+          [
+            { offsetDistance: "0%", opacity: 0 },
+            { opacity: 1, offset: 0.12 },
+            { opacity: 1, offset: 0.88 },
+            { offsetDistance: "100%", opacity: 0 },
+          ],
+          { duration: dur, delay: at, easing: "cubic-bezier(0.645, 0.045, 0.355, 1)", fill: "backwards" },
+        ),
+      ];
+    });
+  }
+
+  function applyPhase(t: number) {
+    const phase: Phase = currentLoop().phases.findLast((p) => p.at <= t) ?? REST;
+    // the clock ticks every frame; Svelte state only changes when the phase does
+    if (phase === lastPhase) return;
+    lastPhase = phase;
+    step = phase.step;
+    check = phase.check ?? "";
+    activeEdges = phase.edges ?? [];
+  }
+
   $effect(() => {
     if (!running) return;
-    let timers: ReturnType<typeof setTimeout>[] = [];
-    const loop = () => {
-      timers = TIMELINE.map(([at, s]) => setTimeout(() => (step = s), at));
-      timers.push(setTimeout(loop, LOOP_MS));
+    if (clock === 0) startLoop();
+    else anims.forEach((a) => a.play());
+    let last = performance.now();
+    let raf = requestAnimationFrame(function frame(now) {
+      clock += now - last;
+      last = now;
+      if (clock >= currentLoop().length) {
+        clock = 0;
+        loopIndex++;
+        startLoop();
+      }
+      applyPhase(clock);
+      raf = requestAnimationFrame(frame);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      anims.forEach((a) => a.pause());
     };
-    loop();
-    return () => timers.forEach(clearTimeout);
   });
 
   async function show(id: AgentId, e: MouseEvent) {
     trigger = e.currentTarget as HTMLElement;
     openAgent = id;
     step = 0;
+    lastPhase = null;
     await tick();
     if (!card || !map) return;
     if (window.matchMedia("(max-width: 767.98px)").matches) {
@@ -130,6 +301,7 @@
   class="map"
   bind:this={map}
   data-step={step}
+  data-check={check}
   class:running
   role="group"
   aria-label="How the fleet works"
@@ -140,40 +312,63 @@
     if (!e.currentTarget.contains(e.relatedTarget as Node)) focusedWithin = false;
   }}
 >
+  <!-- connectors and packets, measured from the cards (Figma 67:1511); decorative, the cards carry the text -->
+  <svg class="wires" width={size.w} height={size.h} viewBox="0 0 {size.w} {size.h}" aria-hidden="true">
+    <defs>
+      {#each ["base", "pass", "fail"] as m (m)}
+        <marker id="fm-arrow-{m}" class="arrow-{m}" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0.5 L5.5 3 L0 5.5 Z" />
+        </marker>
+      {/each}
+    </defs>
+    {#each Object.entries(wires) as [k, d] (k)}
+      {#if !k.startsWith("mp")}
+        {@const kind = k === "pass" ? "pass" : k === "fail" ? "fail" : "base"}
+        <path class="wire {kind}" class:gate={k === "approve"} {d} marker-end={/^m\d/.test(k) ? undefined : `url(#fm-arrow-${kind})`} />
+        <path class="flow {kind}" class:on={activeEdges.includes(k)} {d} />
+      {/if}
+    {/each}
+    <text class="wl fail" x={labels.fail.x} y={labels.fail.y}>fail → back to lead</text>
+    <text class="wl gate" x={labels.approve.x} y={labels.approve.y} text-anchor="end">approve ship</text>
+  </svg>
+  {#each PACKET_EDGES as k (k)}
+    <span class="pk" bind:this={packetEls[k]} style:offset-path={wires[k] ? `path("${wires[k]}")` : "none"} aria-hidden="true"></span>
+  {/each}
+
   <div class="row top">
-    <div class="node">
+    <div class="node" data-node="task">
       <p class="n-title"><span class="glyph mono">#</span>Task</p>
       <p class="n-sub">issue · spec · idea</p>
     </div>
-    <div class="h-link" data-label="trigger"><span class="packet p1"></span></div>
-    <div class="node t3">
+    <div class="h-link" data-label="trigger"></div>
+    <div class="node t3" data-node="t3">
       <p class="n-title"><Logo name="t3code" size={18} />T3 Code</p>
       <p class="n-sub">control plane, local</p>
       <p class="logos"><Logo name="claude" size={12} /><Logo name="antigravity" size={12} /></p>
     </div>
     <div class="h-link" data-label="spec"></div>
-    <div class="node gate">
+    <div class="node gate" data-node="gate">
       <p class="n-title"><img src="/images/profile-photo-2.webp" alt="" width="18" height="18" class="me" />You · phone</p>
       <p class="n-sub">approves spec and ship</p>
     </div>
   </div>
 
-  <div class="v-link" data-label="run"><span class="packet p2"></span></div>
+  <div class="v-link" data-label="run"></div>
 
-  <button type="button" class="node agent lead" aria-label="Open JARVIS card" onclick={(e) => show("JARVIS", e)}>
-    <span class="n-title"><AgentAvatar id="JARVIS" size={24} active={step >= 2 && step < 4} />JARVIS<Icon name="arrow-up-right" size={12} class="open-ic" /></span>
+  <button type="button" class="node agent lead" data-node="jarvis" aria-label="Open JARVIS card" onclick={(e) => show("JARVIS", e)}>
+    <span class="n-title"><AgentAvatar id="JARVIS" size={24} active={step === 3} />JARVIS<Icon name="arrow-up-right" size={12} class="open-ic" /></span>
     <span class="n-sub accent">lead · orchestrator</span>
     <span class="n-sub chips"><Logo name="claude" size={12} /><span>Opus</span><span>Matt Pocock skills</span></span>
   </button>
 
   <div class="branch" data-label="delegate_task">
-    {#each WORKERS as w, i (w)}<span class="drop" style:--i={[0, 40, 70, 90][i]}><span class="packet p3"></span></span>{/each}
+    {#each WORKERS as w (w)}<span class="drop"></span>{/each}
   </div>
 
   <div class="row agents">
     {#each WORKERS as w (w)}
-      <button type="button" class="node agent" aria-label="Open {w} card" onclick={(e) => show(w, e)}>
-        <span class="n-title"><AgentAvatar id={w} size={24} active={step === 3} />{w}<Icon name="arrow-up-right" size={12} class="open-ic" /></span>
+      <button type="button" class="node agent" data-node={w} aria-label="Open {w} card" onclick={(e) => show(w, e)}>
+        <span class="n-title"><AgentAvatar id={w} size={24} active={step === 4} />{w}<Icon name="arrow-up-right" size={12} class="open-ic" /></span>
         <span class="n-sub">{AGENTS[w].role}</span>
         <span class="logos">{#each AGENTS[w].logos as l (l)}<Logo name={l} size={12} />{/each}</span>
       </button>
@@ -182,25 +377,25 @@
 
   <div class="merge" aria-hidden="true">
     {#each WORKERS as w (w)}<span class="rise"></span>{/each}
-    <span class="join"><span class="packet p4"></span></span>
+    <span class="join"></span>
   </div>
 
-  <div class="node check">
+  <div class="node check" data-node="check">
     <p class="n-title"><span class="glyph solid">✓</span>fleet check</p>
     <p class="n-sub">deterministic checks per area</p>
     <p class="chips">
-      {#each ["lint", "types", "tests", "build"] as c, i (c)}<span class="chip" data-label={c} style:--i={i * 50}><span class="chip-t">{c}</span></span>{/each}
+      {#each ["lint", "types", "tests", "build"] as c, i (c)}<span class="chip" data-label={c} style:--i={i * 120}><span class="chip-t">{c}</span></span>{/each}
     </p>
     <p class="n-sub fail">fail → back to lead</p>
   </div>
 
-  <div class="v-link pass" data-label="pass"><span class="packet p5"></span></div>
+  <div class="v-link pass" data-label="pass"></div>
 
-  <div class="node ship">
+  <div class="node ship" data-node="ship">
     <p class="n-title"><span class="glyph green">↑</span>Ship</p>
     <p class="n-sub">fleet-ship checks, then deploy</p>
     <p class="n-sub approve">approve ship · human gate</p>
-    <p class="logos"><Logo name="docker" size={12} /><Logo name="easypanel" size={12} /></p>
+    <p class="logos"><Logo name="github-actions" size={12} /><Logo name="docker" size={12} /><Logo name="easypanel" size={12} /></p>
   </div>
 
 
@@ -329,6 +524,12 @@
   .ship { width: min(280px, 100%); background: var(--ci-bg); box-shadow: 0 0 0 1px var(--ci-border); }
   .ship .n-sub { color: var(--ci-text); }
   .fail { color: var(--fleet-text); }
+  @media (min-width: 768px) {
+    .n-sub.fail, .n-sub.approve { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  }
+  @media (max-width: 767.98px) {
+    .wl { display: none; }
+  }
   .approve { font-weight: 500; }
   .chip {
     padding: 1px 6px;
@@ -370,23 +571,25 @@
 
   /* connectors */
   .h-link, .v-link, .branch, .merge { position: relative; }
-  .h-link { align-self: center; height: 1px; margin-top: -10px; background: var(--line-default); }
+  .h-link { align-self: center; height: 1px; margin-top: -10px; }
   .h-link::after, .v-link::after, .branch::after {
     content: attr(data-label);
     position: absolute;
+    z-index: 1;
+    padding: 2px 4px;
+    /* sits on its wire like the Figma labels: the surface masks the line behind the text */
+    background: var(--surface-default);
     font: 10px/1 var(--font-mono);
     color: var(--fg-faint);
     white-space: nowrap;
   }
   .h-link::after { left: 50%; bottom: 6px; translate: -50% 0; }
-  .v-link { width: 1px; height: 44px; background: var(--line-default); }
+  .v-link { width: 1px; height: 44px; }
   .v-link::after { left: 8px; top: 50%; translate: 0 -50%; }
-  .v-link.pass { background: var(--ci-solid); }
   .v-link.pass::after { color: var(--ci-text); }
   .branch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; height: 40px; }
-  .branch::before { content: ""; position: absolute; top: 12px; left: 12.5%; right: 12.5%; height: 1px; background: var(--line-default); }
   .branch::after { left: 50%; top: 18px; translate: 8px 0; color: var(--fleet-text); }
-  .drop { position: relative; justify-self: center; width: 1px; margin-top: 12px; background: var(--line-default); }
+  .drop { justify-self: center; width: 1px; }
   .merge {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -394,47 +597,68 @@
     width: 100%;
     height: 40px;
   }
-  .rise { justify-self: center; width: 1px; height: 14px; background: var(--line-default); }
-  .merge::before { content: ""; position: absolute; top: 14px; left: 12.5%; right: 12.5%; height: 1px; background: var(--line-default); }
-  .join { position: absolute; left: 50%; top: 14px; width: 1px; height: 26px; background: var(--line-default); }
+  .rise, .join { width: 1px; }
   .agents { position: relative; }
 
-  /* packets travel along the line; each plays once when its step starts */
-  .packet {
+  /* SVG connectors: thin lines with 6 × 6 arrows; the active one carries a dashed flow (0 → -16, 900 ms) */
+  .node, .lead, .agents, .row { position: relative; z-index: 1; }
+  .wires { position: absolute; top: 0; left: 0; z-index: 0; overflow: visible; pointer-events: none; }
+  .wire { fill: none; stroke: var(--line-default); stroke-width: 1.25; }
+  .wire.pass { stroke: var(--ci-solid); }
+  .wire.fail { stroke: var(--fleet-text); stroke-dasharray: 3 3; }
+  .wire.gate { stroke: var(--line-strong); }
+  .arrow-base path { fill: var(--line-default); }
+  .arrow-pass path { fill: var(--ci-solid); }
+  .arrow-fail path { fill: var(--fleet-text); }
+  .flow { fill: none; stroke: var(--fleet-solid); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0; transition: opacity 200ms var(--ease-out); }
+  .flow.pass { stroke: var(--ci-solid); }
+  .flow.on { opacity: 1; animation: flow 900ms linear infinite; }
+  .map:not(.running) .flow.on { animation-play-state: paused; }
+  @keyframes flow { to { stroke-dashoffset: -16; } }
+  .wl { font: 11px var(--font-mono); }
+  .wl.fail { fill: var(--fleet-text); }
+  .wl.gate { fill: var(--fg-secondary); }
+
+  /* packet: 10 px head with a 24 px tail, riding offset-path along its wire */
+  .pk {
     position: absolute;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--fleet-solid);
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: 24px;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, transparent, color-mix(in oklab, var(--pk) 55%, transparent));
+    offset-anchor: 19px 5px;
+    offset-rotate: auto;
     opacity: 0;
     pointer-events: none;
+    --pk: var(--fleet-solid);
   }
-  .p1 { top: -3px; left: 0; }
-  .p2, .p3, .p4, .p5 { left: -3px; top: 0; }
-  .p5 { background: var(--ci-solid); }
-  .map[data-step="1"] .p1 { animation: travel-x 320ms var(--ease-flow) both; }
-  .map[data-step="2"] .p2 { animation: travel-y 360ms var(--ease-flow) both; --len: 44px; }
-  .map[data-step="3"] .p3 { animation: travel-y 400ms var(--ease-flow) both; animation-delay: calc(var(--i) * 1ms); --len: 28px; }
-  .map[data-step="4"] .p4 { animation: travel-y 360ms var(--ease-flow) both; --len: 26px; }
-  .map[data-step="6"] .p5 { animation: travel-y 320ms var(--ease-flow) both; --len: 44px; }
-  .map:not(.running) .packet { animation-play-state: paused; }
-  @keyframes travel-x {
-    0% { opacity: 0; translate: 0 0; }
-    15% { opacity: 1; }
-    100% { opacity: 0; translate: 44px 0; }
-  }
-  @keyframes travel-y {
-    0% { opacity: 0; translate: 0 0; }
-    15% { opacity: 1; }
-    100% { opacity: 0; translate: 0 var(--len); }
-  }
-  /* T3 ring at +240 ms, active agents, check chips at 2200 + 50 ms each, ship at 2900 */
-  .map[data-step="1"] .t3::after { opacity: 1; transition-delay: 240ms; }
-  :is(.map[data-step="5"], .map[data-step="6"]) .chip::before,
-  :is(.map[data-step="5"], .map[data-step="6"]) .chip::after { opacity: 1; transition-delay: calc(var(--i) * 1ms); }
-  :is(.map[data-step="5"], .map[data-step="6"]) .chip-t { opacity: 0; transition-delay: calc(var(--i) * 1ms); }
-  .map[data-step="5"] .gate::after, .map[data-step="6"] .gate::after { opacity: 1; }
-  .map[data-step="6"] .ship::after { opacity: 1; transition-duration: 320ms; }
+  .pk::after { content: ""; position: absolute; right: 0; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--pk); }
+  /* data-tone is set per run in startLoop() */
+  .pk:global([data-tone="pass"]) { --pk: var(--ci-solid); }
+  .pk:global([data-tone="gate"]) { --pk: var(--line-strong); }
+
+  /* agents at work (3.4–5.6 s): a slow 1 → 1.04 breath on each avatar */
+  .map[data-step="3"] .lead :global(.avatar),
+  .map[data-step="4"] .agents :global(.avatar) { animation: work 1200ms var(--ease-in-out) infinite alternate; }
+  @keyframes work { to { scale: 1.04; } }
+  .map:not(.running) :global(.avatar) { animation-play-state: paused; }
+
+  /* T3 ring 0.8 s, chips light one by one (120 ms), approve ring 7.3 s, Ship 8 s */
+  .map[data-step="2"] .t3::after { opacity: 1; }
+  .map[data-check="pass"] .chip::before,
+  .map[data-check="pass"] .chip::after { opacity: 1; transition-delay: calc(var(--i) * 1ms); }
+  .map[data-check="pass"] .chip-t { opacity: 0; transition-delay: calc(var(--i) * 1ms); }
+  /* fail path (every third loop): lint and types pass, tests goes red, build never runs */
+  .map[data-check="fail"] .chip:nth-child(-n + 3)::before,
+  .map[data-check="fail"] .chip:nth-child(-n + 3)::after { opacity: 1; transition-delay: calc(var(--i) * 1ms); }
+  .map[data-check="fail"] .chip:nth-child(-n + 3) .chip-t { opacity: 0; transition-delay: calc(var(--i) * 1ms); }
+  .map[data-check="fail"] .chip:nth-child(3)::before { background: var(--danger-subtle); }
+  .map[data-check="fail"] .chip:nth-child(3)::after { color: var(--danger-text); }
+  .map[data-step="7"] .gate::after { opacity: 1; }
+  .map[data-step="8"] .ship::after { opacity: 1; transition-duration: 320ms; }
 
   .legend {
     display: flex;
@@ -538,15 +762,12 @@
     .top { grid-template-columns: 1fr; justify-items: stretch; }
     .h-link { justify-self: center; width: 1px; height: 28px; margin: 0; }
     .h-link::after { left: 8px; bottom: auto; top: 50%; translate: 0 -50%; }
-    .h-link .packet { display: none; }
     .agents { grid-template-columns: 1fr 1fr; }
     .branch { grid-template-columns: 1fr 1fr; }
-    .branch .drop:nth-child(n + 3), .merge .rise:nth-child(n + 3) { display: none; }
     .branch, .merge { grid-template-columns: 1fr 1fr; }
-    .branch::before, .merge::before { left: 25%; right: 25%; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .packet { display: none; }
+    .pk { display: none; }
     button.node:active { scale: 1; }
     .agent-card, .agent-card[open] { scale: 1; translate: 0 0; transition-property: opacity, display, overlay; }
     .agent-card { opacity: 0; }

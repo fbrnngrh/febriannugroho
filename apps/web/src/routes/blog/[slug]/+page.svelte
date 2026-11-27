@@ -1,11 +1,14 @@
 <script lang="ts">
-  import { mount, tick, unmount } from "svelte";
+  import { mount, tick, unmount, untrack } from "svelte";
+  import { afterNavigate } from "$app/navigation";
   import { inview } from "#lib/actions/inview.ts";
   import ArrowLink from "#lib/components/ArrowLink.svelte";
   import BackLink from "#lib/components/BackLink.svelte";
   import CopyButton from "#lib/components/CopyButton.svelte";
   import Icon from "#lib/components/Icon.svelte";
   import WorkCover from "#lib/components/work/WorkCover.svelte";
+  import CoverArt from "#lib/components/writing/CoverArt.svelte";
+  import { coverOf } from "#lib/components/writing/WritingRow.svelte";
   import { allPosts, formatDate, postHref } from "#lib/content/posts.ts";
   import { DECISIONS, PROJECTS } from "#lib/content/site.ts";
   import type { PageProps } from "./$types";
@@ -15,6 +18,30 @@
   const PostComponent = $derived(data.PostComponent);
   const post = $derived(data.post);
   const ciProject = PROJECTS.find((p) => p.id === "ci-cd")!;
+
+  // Back goes where the reader came from: an article opened from Home returns to Home (to the same
+  // scroll spot via history), one opened from Writing or a direct link returns to Writing.
+  let fromHome = $state(false);
+  let previousIsHome = $state(false);
+  afterNavigate(({ from }) => {
+    const path = from?.url.pathname;
+    previousIsHome = path === "/";
+    // reading on to the next article keeps the way back to Home
+    if (!path?.startsWith(`${DECISIONS.writingPath}/`)) fromHome = previousIsHome;
+  });
+  // the illustration cover plays once as each article opens: set while the cover is still faded out, so the
+  // reset to frame 0 is never seen; the ~300 ms beat is --play-delay on the cover, not a timer racing the fade
+  let artPlay = $state(0);
+  $effect(() => {
+    void post.slug;
+    untrack(() => artPlay++);
+  });
+
+  function back(e: MouseEvent) {
+    if (!previousIsHome || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    history.back();
+  }
 
   const next = $derived.by(() => {
     const list = allPosts();
@@ -86,7 +113,7 @@
 
 <article class="article">
   <header class="col-text head">
-    <div data-reveal use:inview><BackLink href={DECISIONS.writingPath} label="Writing" /></div>
+    <div data-reveal use:inview><BackLink href={fromHome ? "/" : DECISIONS.writingPath} label={fromHome ? "Home" : "Writing"} onclick={back} /></div>
     <p class="meta" data-reveal use:inview style:--reveal-delay="100ms">
       {#each post.tags as t (t)}<span class="tag" class:shipping={t === "Shipping"}>{t}</span>{/each}
       <time datetime={post.date}>{formatDate(post.date)}</time> · {post.readingTime}
@@ -100,6 +127,12 @@
   {:else if post.coverImage}
     <div class="cover col-wide" data-reveal="fade" use:inview>
       <img src={post.coverImage} alt="" width="1200" height="545" />
+    </div>
+  {:else}
+    <!-- no mockup or hero image: the post's own illustration, in its card colour, plays once on open -->
+    {@const art = coverOf(post)}
+    <div class="cover art-cover col-wide" data-reveal="fade" use:inview style:--cover-bg={art.bg} style:--cover-accent={art.accent} style:--play-delay="300ms">
+      <CoverArt kind={post.tags[0] ?? ""} slug={post.slug} play={artPlay} />
     </div>
   {/if}
 
@@ -147,6 +180,16 @@
   h1 { margin: 0; font-size: 32px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
   .lead { margin: 0; font-size: 19px; line-height: 1.5; color: var(--fg-muted); }
   .cover { border-radius: var(--radius-card); overflow: hidden; }
+  /* same 2.2 frame as the image covers; the 200×120 drawing sits centred at the frame's height */
+  .art-cover {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 2.2;
+    padding: clamp(16px, 4vw, 40px);
+    background: var(--cover-bg);
+    box-shadow: var(--shadow-ring-1);
+  }
+  .art-cover :global(.art) { width: auto; height: 100%; max-width: 100%; }
   .cover img { display: block; width: 100%; height: auto; aspect-ratio: 2.2; object-fit: cover; background: var(--surface-placeholder); outline: 1px solid var(--image-outline); outline-offset: -1px; }
 
   .body { position: relative; display: grid; gap: 32px; justify-items: start; }

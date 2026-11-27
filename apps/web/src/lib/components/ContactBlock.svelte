@@ -2,7 +2,9 @@
   import { inview } from "#lib/actions/inview.ts";
   import { PERSON, SOCIALS } from "#lib/content/site.ts";
   import CopyButton from "./CopyButton.svelte";
+  import EmailMeButton from "./EmailMeButton.svelte";
   import Icon from "./Icon.svelte";
+  import LinkPreview from "./LinkPreview.svelte";
 
   let { headingLevel = 2 }: { headingLevel?: 1 | 2 } = $props();
 
@@ -23,15 +25,29 @@
   <p class="body-text lead" data-reveal use:inview>The fastest way to reach me is email.</p>
   <div class="email-row" data-reveal use:inview style:--reveal-delay="100ms">
     <a class="email" href="mailto:{PERSON.email}" bind:this={emailEl}>{PERSON.email}</a>
+    <EmailMeButton compact />
     <CopyButton value={PERSON.email} label="Copy email" selectOnFail={() => emailEl} />
   </div>
   <ul class="socials" data-reveal use:inview style:--reveal-delay="200ms">
     {#each SOCIALS as s (s.label)}
       <li>
-        <a class="link social" href={s.href} target="_blank" rel="noopener noreferrer">
-          {s.label}<Icon name="external" size={14} />
-          <span class="sr-only">(opens in a new tab)</span>
-        </a>
+        {#if "preview" in s}
+          <LinkPreview
+            href={s.href}
+            label={s.label}
+            meta={new URL(s.href).hostname.replace(/^www\./, "")}
+            image="/images/previews/{s.preview}.webp"
+            class="link social"
+            external
+          >
+            {s.label}<Icon name="external" size={14} />
+          </LinkPreview>
+        {:else}
+          <a class="link social" href={s.href} target="_blank" rel="noopener noreferrer">
+            {s.label}<Icon name="external" size={14} />
+            <span class="sr-only">(opens in a new tab)</span>
+          </a>
+        {/if}
       </li>
     {/each}
   </ul>
@@ -57,10 +73,10 @@
     .email:hover { text-decoration-color: currentColor; }
   }
   .socials { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; list-style: none; }
-  .social { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; line-height: 21px; }
+  .socials :global(.social) { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; line-height: 21px; }
   /* 44 px touch target on phones without changing the 21 px line */
   @media (pointer: coarse) {
-    .social::before { content: ""; position: absolute; inset: -12px -6px; }
+    .socials :global(.social::before) { content: ""; position: absolute; inset: -12px -6px; }
   }
   .where { margin: 0; font-size: 13px; color: var(--fg-muted); }
   .sr-only {

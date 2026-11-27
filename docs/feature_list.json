@@ -150,6 +150,16 @@
       ],
       "status": "done",
       "evidence": "Branch redesign/portfolio-2026 (local, not pushed). bun run check-types: svelte-check 0 errors 0 warnings; vite build OK (prerender incl. new CI/CD post); browser QA 320–1920 px x 6 routes no overflow, one main/h1. Open decisions in src/lib/content/site.ts DECISIONS."
+    },
+    {
+      "id": "feat-016",
+      "name": "Live fixes: Panggung v3 stage + review items",
+      "description": "Doc 07 (one video card, 12 SVG scenes from Figma 307-309, @property chapter colour layer, scroll grow, card = pause button) and review items 7, 8, 9, 11, 12 (code part), 13",
+      "dependencies": [
+        "feat-015"
+      ],
+      "status": "in-review",
+      "evidence": "Branch fix/live-stage-v3 from origin/master ebaacfe (local, not pushed). check-types + build pass 2026-11-27; browser QA 1440/390/320, light/dark, fail loop on /stack. Open: dark-mode scene colours provisional, chapter-3 caption link, GitHub token/workflow, /review-animations (owner-only skill)."
     }
   ]
 }

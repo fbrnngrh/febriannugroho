@@ -3,6 +3,9 @@
   import Icon from "./Icon.svelte";
 
   // Paper plane (Figma 121:3800, motion 123:8905): press → fly out → "Mail app opened" → back after 2 s.
+  /** compact: a quiet secondary chip the size of the Copy button (Contact row); default is the dark primary button */
+  let { compact = false }: { compact?: boolean } = $props();
+
   let phase = $state<"idle" | "flying" | "done">("idle");
   let returned = $state(false);
   let timers: ReturnType<typeof setTimeout>[] = [];
@@ -25,12 +28,12 @@
   }
 </script>
 
-<button type="button" class="email-me" data-phase={phase} data-returned={returned} onclick={send}>
+<button type="button" class="email-me" class:compact data-phase={phase} data-returned={returned} onclick={send}>
   <span class="labels">
     <span class="label idle" aria-hidden={phase === "done"}>Email me</span>
     <span class="label done" aria-hidden={phase !== "done"}>
       <Icon name="check" size={14} class="tick" />
-      Mail app opened
+      {compact ? "Opened" : "Mail app opened"}
     </span>
   </span>
   <span class="plane" aria-hidden="true">
@@ -120,6 +123,23 @@
   @keyframes plane-in {
     from { translate: -8px 0; opacity: 0; rotate: 0deg; scale: 1; }
     to { rotate: 0deg; scale: 1; }
+  }
+
+  /* compact: secondary chip, same height, surface and ring as Copy; the short "Opened" keeps it narrow */
+  .email-me.compact {
+    width: auto;
+    height: 32px;
+    gap: 6px;
+    padding-inline: 11px 10px;
+    border-radius: var(--radius-button);
+    background: var(--surface-default);
+    color: var(--fg-default);
+    box-shadow: var(--shadow-button);
+    font: 400 13px/1 var(--font-sans);
+  }
+  .email-me.compact :global(svg) { width: 12px; height: 12px; }
+  @media (hover: hover) and (pointer: fine) {
+    .email-me.compact[data-phase="idle"]:hover { background: var(--surface-muted); }
   }
 
   .sr-only {

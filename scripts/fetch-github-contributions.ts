@@ -1,4 +1,4 @@
-import { join } from "path";
+import { dirname, join } from "path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 
 // Manually parse env vars from apps/web/.env
@@ -22,6 +22,8 @@ if (existsSync(envPath)) {
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_USERNAME = process.env.GITHUB_USERNAME || "fbrnngrh";
+/** ≈ 9 months, the span the home page shows */
+const WEEKS = 39;
 const outputPath = join(import.meta.dir, "..", "apps", "web", "src", "lib", "data", "github-contributions.json");
 
 console.log(`=== GitHub Contribution Fetcher ===`);
@@ -38,17 +40,18 @@ if (!GITHUB_TOKEN) {
   }
 }
 
+// contributionLevel is GitHub's own quartile for each day (NONE … FOURTH_QUARTILE), the scale the profile
+// graph uses. Our own count thresholds made 73 days look maximal where GitHub shows 2 (review §7).
 const query = `
-query($login: String!, $from: DateTime, $to: DateTime) {
+query($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
     contributionsCollection(from: $from, to: $to) {
       contributionCalendar {
-        totalContributions
         weeks {
           contributionDays {
             date
             contributionCount
-            color
+            contributionLevel
           }
         }
       }
@@ -57,79 +60,55 @@ query($login: String!, $from: DateTime, $to: DateTime) {
 }
 `;
 
-async function fetchYearData(year: number | "lastYear") {
-  const variables: any = { login: GITHUB_USERNAME };
-  if (year !== "lastYear") {
-    variables.from = `${year}-01-01T00:00:00Z`;
-    variables.to = `${year}-12-31T23:59:59Z`;
-  }
+const LEVELS = ["NONE", "FIRST_QUARTILE", "SECOND_QUARTILE", "THIRD_QUARTILE", "FOURTH_QUARTILE"];
+
+async function fetchContributions() {
+  const to = new Date();
+  // start on the Sunday WEEKS - 1 weeks back, so the grid has whole columns
+  const from = new Date(to);
+  from.setUTCDate(from.getUTCDate() - from.getUTCDay() - (WEEKS - 1) * 7);
+  from.setUTCHours(0, 0, 0, 0);
 
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "Authorization": `bearer ${GITHUB_TOKEN}`,
-      "User-Agent": "Bun-GitHub-Contributions-Fetcher",
+      Authorization: `bearer ${GITHUB_TOKEN}`,
+      "User-Agent": "github-contributions-fetcher",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
+    body: JSON.stringify({ query, variables: { login: GITHUB_USERNAME, from: from.toISOString(), to: to.toISOString() } }),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`GitHub API error (${response.status}) for year ${year}: ${text}`);
-  }
-
-  const json = await response.json() as any;
-
-  if (json.errors) {
-    throw new Error(`GraphQL Errors for year ${year}: ${json.errors.map((e: any) => e.message).join(", ")}`);
-  }
-
+  if (!response.ok) throw new Error(`GitHub API error (${response.status}): ${await response.text()}`);
+  const json = (await response.json()) as any;
+  if (json.errors) throw new Error(`GraphQL errors: ${json.errors.map((e: any) => e.message).join(", ")}`);
   const calendar = json.data?.user?.contributionsCollection?.contributionCalendar;
-  if (!calendar) {
-    throw new Error(`Invalid response format: user or contributionCalendar not found for year ${year}`);
-  }
+  if (!calendar) throw new Error("Invalid response: user or contributionCalendar not found");
 
-  return calendar;
+  return {
+    fetchedAt: to.toISOString(),
+    weeks: calendar.weeks.map((w: any) =>
+      w.contributionDays.map((d: any) => ({
+        date: d.date,
+        count: d.contributionCount,
+        level: Math.max(0, LEVELS.indexOf(d.contributionLevel)),
+      })),
+    ),
+  };
 }
 
-async function fetchAllContributions() {
-  try {
-    const currentYear = new Date().getFullYear();
-    const startYear = 2021;
-    const allData: Record<string, any> = {};
-
-    // Fetch lastYear (rolling 365 days)
-    console.log("Fetching rolling last year...");
-    allData["lastYear"] = await fetchYearData("lastYear");
-
-    // Fetch calendar years from currentYear down to startYear
-    for (let y = currentYear; y >= startYear; y--) {
-      console.log(`Fetching calendar year ${y}...`);
-      allData[y.toString()] = await fetchYearData(y);
-      // Add a tiny sleep to prevent hitting rate limits
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    const dir = join(import.meta.dir, "..", "apps", "web", "src", "lib", "data");
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
-
-    writeFileSync(outputPath, JSON.stringify(allData, null, 2), "utf-8");
-    console.log(`✅ Success: Fetched contribution data for rolling year and calendar years ${startYear}-${currentYear} and saved to ${outputPath}`);
-  } catch (error: any) {
-    console.error("❌ Error fetching from GitHub API:", error.message);
-    if (existsSync(outputPath)) {
-      console.log("ℹ️ Fallback: Keeping existing github-contributions.json due to fetch error.");
-      process.exit(0);
-    } else {
-      process.exit(1);
-    }
+try {
+  const data = await fetchContributions();
+  // same counts as the snapshot: keep the file (and git) untouched instead of only bumping fetchedAt
+  const previous = existsSync(outputPath) ? JSON.parse(readFileSync(outputPath, "utf-8")) : null;
+  if (JSON.stringify(previous?.weeks) === JSON.stringify(data.weeks)) {
+    console.log("ℹ️ Contributions unchanged; snapshot kept.");
+    process.exit(0);
   }
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, JSON.stringify(data, null, 2) + "\n", "utf-8");
+  console.log(`✅ Saved ${data.weeks.length} weeks to ${outputPath}`);
+} catch (error: any) {
+  console.error("❌ Error fetching from GitHub API:", error.message);
+  if (!existsSync(outputPath)) process.exit(1);
+  console.log("ℹ️ Fallback: keeping the existing github-contributions.json.");
 }
-
-fetchAllContributions();
