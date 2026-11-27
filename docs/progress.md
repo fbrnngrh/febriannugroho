@@ -156,3 +156,9 @@
 ## Notes for Next Session
 
 All backend code removed. Active dev branch: `febrian`. No `.env` file needed anymore. Static output in `apps/web/build/` after `bun run build`.
+
+## Session 2026-11-27: Cloudflare deploy
+
+- Host: Cloudflare Workers static assets, `apps/web/wrangler.jsonc`, custom domain `febriannugroho.my.id`; `www` 301 to apex; Always HTTPS, TLS 1.2+, SSL strict.
+- CI: `.github/workflows/deploy.yml` deploys on push to `master` (secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` set on the GitHub repo).
+- Evidence: first `wrangler deploy` from local with the CI token succeeded; `curl` shows `/` 200, `/stack` 200, unknown path 404, `www` 301 to apex, `http` 301 to `https`, security headers present.
