@@ -5,6 +5,8 @@ Docker juga ada. GitHub Actions tidak ada di paket. Next.js, React, Cursor, Wind
 > Implementasi: logo yang dipakai situs disalin apa adanya ke `apps/web/src/lib/assets/logos/*.svg`
 > (satu-satunya perubahan: id gradien diberi nama unik, `easypanel-g` dan `antigravity-g`, agar tidak bentrok saat dirender inline).
 > File itulah salinan SVG-nya; di bawah hanya logo yang belum dipakai situs.
+>
+> Dicek 27 Nov 2026: kesepuluh file di `apps/web/src/lib/assets/logos/` dirender berdampingan di latar terang dan gelap, semuanya utuh (angka seperti `16.110` sama nilainya dengan `16.11`). Salinan di bawah (Codex, TypeScript, Laravel, Tailwind, GitHub, GitHub Actions) **belum dirender**; angka di path-nya bisa saja salah ketik saat disalin. Sebelum dipakai, render dulu, dan kalau rusak ambil file SVG resmi dari situs pembuatnya atau simpleicons.org (unduh file saja, tanpa paket).
 
 | Logo | File |
 |---|---|
