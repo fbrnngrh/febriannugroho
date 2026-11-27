@@ -24,7 +24,7 @@ export const PERSON = {
 export const SOCIALS = [
   // preview: screenshot name in /images/previews/<preview>.webp, shown on hover/focus
   { label: "GitHub", short: "GH", href: "https://github.com/fbrnngrh", preview: "github" },
-  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/", preview: "linkedin" },
+  { label: "LinkedIn", short: "in", href: "https://www.linkedin.com/in/febrian-bayu-nugroho-ba044a1a0/" } /* no preview: LinkedIn shows only a login wall to visitors */,
   { label: "Threads", short: "Th", href: "https://www.threads.net/@febriannugroho.dev", preview: "threads" },
   { label: "Instagram", short: "IG", href: "https://www.instagram.com/febriannugroho.dev" },
 ] as const;
