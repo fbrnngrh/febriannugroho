@@ -25,13 +25,15 @@
   const dist = (i: number, a = active) => mod(i - a + L) - L;
 
   // Pose per distance from the front (d = dist(index)). x = k × card width + px.
-  // Left pile (d < 0) rests over the deck, so a thrown card stays on top; ±4 is the hidden end of the window.
+  // Left pile (d < 0) mirrors the right peek: thin slivers behind the front card, not half a card hanging off the
+  // screen edge (owner, 27 Nov). A thrown card is lifted above the deck while it flies (lift), then tucks under.
+  // ±4 is the hidden end of the window.
   type Pose = { k: number; px: number; r: number; s: number; o: number };
   const POSES: Pose[] = [
-    { k: -1, px: -24, r: -13, s: 0.86, o: 0 },
-    { k: -1, px: -24, r: -13, s: 0.86, o: 1 },
-    { k: -1, px: -12, r: -11, s: 0.9, o: 1 },
-    { k: -1, px: 0, r: -9, s: 0.94, o: 1 },
+    { k: 0, px: -48, r: -9, s: 0.85, o: 0 },
+    { k: 0, px: -48, r: -9, s: 0.85, o: 1 },
+    { k: 0, px: -34, r: -6, s: 0.9, o: 1 },
+    { k: 0, px: -18, r: -3, s: 0.95, o: 1 },
     { k: 0, px: 0, r: 0, s: 1, o: 1 },
     { k: 0, px: 18, r: 3, s: 0.95, o: 1 },
     { k: 0, px: 34, r: 6, s: 0.9, o: 1 },
@@ -43,14 +45,16 @@
     const p = poseAt(d);
     return `translate(calc(var(--w) * ${p.k} + ${p.px}px), 0) rotate(${p.r}deg) scale(${p.s})`;
   };
-  const zOf = (d: number) => (d < 0 ? 110 + Math.max(d, -9) : 100 - Math.min(d, 9));
+  const zOf = (d: number) => 100 - Math.min(Math.abs(d), 9);
+  // the loop puts the last posts on the left pile before anything was read: keep it empty until the first move
+  let touched = $state(false);
 
   // Gesture constants (px, ms)
   const SLOP = 6;
   const DIST = 0.35; // of the card width
   const FLICK = 0.11; // px/ms, average over the drag (Sonner)
   const RUBBER = 0.2;
-  const FLY = 280; // ms: a card thrown right leaves the screen, then tucks onto the left pile
+  const FLY = 280; // ms: a thrown card leaves the screen on its side, then tucks onto the left pile
 
   // Only the front cover plays: once when the deck is half in view, once per card the first time it comes to the
   // front, and again on hover or keyboard focus. Covers that have not been at the front yet are armed (reset to
@@ -121,13 +125,17 @@
     flying = null;
     el.removeEventListener("transitionend", landed);
     tuck(el, dist(i));
+    // once it has left the screen it belongs under the new front card, not lifted above it
+    if (lift === i) lift = null;
   }
   // lands when the flight ends, not on a clock: a slow frame (or a slowed-down replay) never cuts it short
   const landed = (e: TransitionEvent) => e.target === flying?.el && e.propertyName === "transform" && land();
 
   let settle: ReturnType<typeof setTimeout> | undefined;
-  // step: +1 next (both throws), −1 previous; `right` is the card element thrown to the right
-  function go(step: 1 | -1, fromSwipe = false, right?: HTMLElement) {
+  // step: +1 next (both throws), −1 previous; `right` is the thrown card element, `side` the way it was thrown
+  // (−1 left, +1 right): it flies off that edge, then tucks onto the thin left pile behind the new front card
+  function go(step: 1 | -1, fromSwipe = false, right?: HTMLElement, side: 1 | -1 = 1) {
+    touched = true;
     if (n < 2) return;
     land();
     const old = active;
@@ -140,7 +148,7 @@
       // Svelte writes the card's pile pose on its next flush: write the flight after it
       flushSync();
       right.style.transition = `transform ${FLY}ms var(--ease-out)`;
-      right.style.transform = `translate(${stackEl!.clientWidth / 2 + right.offsetWidth * 0.7}px, 0) rotate(${-POSES[0]!.r}deg) scale(${POSES[0]!.s})`;
+      right.style.transform = `translate(${side * (stackEl!.clientWidth / 2 + right.offsetWidth * 0.7)}px, 0) rotate(${side * -POSES[0]!.r}deg) scale(${POSES[0]!.s})`;
       // fallback in case the transition never runs (tab hidden mid-flight)
       flying = { el: right, i: old, t: setTimeout(land, FLY * 12) };
       right.addEventListener("transitionend", landed);
@@ -253,7 +261,7 @@
     const hand = near(all);
     // hand the cards back to CSS: same strings Svelte renders, so a spring-back also gets its transition
     for (const el of hand) el.style.transition = "";
-    if (thrown) go(1, true, side > 0 && !prefersReducedMotion() ? front : undefined);
+    if (thrown) go(1, true, prefersReducedMotion() ? undefined : front, side > 0 ? 1 : -1);
     else {
       released = true;
       settleSoon();
@@ -335,7 +343,7 @@
           class:released
           data-front={d === 0 || undefined}
           style:transform={restTransform(d)}
-          style:opacity={poseAt(d).o}
+          style:opacity={d < 0 && !touched ? 0 : poseAt(d).o}
           style:--cover-bg={cover.bg}
           style:--cover-accent={cover.accent}
           style:--play-delay="{delays[post.slug] ?? 0}ms"
