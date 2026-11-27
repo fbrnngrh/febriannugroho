@@ -25,7 +25,7 @@
   <p class="body-text lead" data-reveal use:inview>The fastest way to reach me is email.</p>
   <div class="email-row" data-reveal use:inview style:--reveal-delay="100ms">
     <a class="email" href="mailto:{PERSON.email}" bind:this={emailEl}>{PERSON.email}</a>
-    <EmailMeButton />
+    <EmailMeButton compact />
     <CopyButton value={PERSON.email} label="Copy email" selectOnFail={() => emailEl} />
   </div>
   <ul class="socials" data-reveal use:inview style:--reveal-delay="200ms">
@@ -59,17 +59,6 @@
   .heading { margin: 0; font-weight: 400; }
   .lead { margin: 0; }
   .email-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-  /* same paper-plane button as the profile card, compacted to the Copy chip: 32 px, 13 px label, 12 px plane */
-  .email-row :global(.email-me) {
-    width: auto;
-    height: 32px;
-    gap: 6px;
-    padding-inline: 11px 10px;
-    border-radius: var(--radius-button);
-    font-size: 13px;
-    font-weight: 400;
-  }
-  .email-row :global(.email-me svg) { width: 12px; height: 12px; }
   .email {
     font-size: 17px;
     color: var(--fg-default);
