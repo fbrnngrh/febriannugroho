@@ -48,26 +48,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 bun run build
 ```
 
-Static output is generated in `apps/web/build/`. Deploy to any static host (Vercel, Netlify, GitHub Pages, Cloudflare Pages).
-
-## Easypanel GitHub Deployment
-
-This repo includes a lightweight production container setup for Easypanel's
-GitHub source deployment:
-
-- `Dockerfile` — multi-stage Bun build, tiny Nginx runtime
-- `nginx.conf` — static serving, gzip, immutable asset caching, `/health`
-
-Because this is a monorepo, set Easypanel's build path/base directory to the
-repo root:
-
-```txt
-.
-```
-
-Use container port `80` and health check path `/health`.
-
-See [`docs/deployment.md`](docs/deployment.md) for the full Easypanel setup.
+Static output is generated in `apps/web/build/`. Deploy to any static host (Vercel, Netlify, GitHub Pages, Cloudflare Pages). Pages are prerendered as `stack.html`, `blog.html`, `blog/<slug>.html`, so the host must serve `/stack` from `stack.html` (clean URLs) and unknown paths from `404.html`; otherwise a refresh on any page except `/` returns the host's own 404.
 
 ## Project Structure
 

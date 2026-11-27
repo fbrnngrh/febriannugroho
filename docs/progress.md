@@ -2,12 +2,21 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-08
-**Active Feature:** Easypanel GitHub Dockerfile Deployment (in progress)
+**Last Updated:** 2026-11-27
+**Active Feature:** Portfolio redesign 2026 (feat-015) on branch `redesign/portfolio-2026`, not pushed
 
 ## Status
 
 ### What's Done
+
+- [x] **Portfolio redesign 2026 (feat-015)** — 2026-11-27, branch `redesign/portfolio-2026` (local only)
+  - Handoff saved in `docs/redesign-handoff/` (Figma M4H1HkuEiWyZTToDQ6Iml2, page Hi-fi).
+  - Dependencies updated; SvelteKit 3 migration (`sv migrate sveltekit-3`): config in `vite.config.ts`, `$lib` → `#lib`, mdsvex 1 as a Vite plugin. TypeScript stays 6.x (Kit 3 needs the TS 6 compiler API). `web` now has a real `check-types` script.
+  - New tokens (Inter + Geist Mono, light/dark, motion), layout (skip link, nav, Explore menu, floating profile, page cross-fade), Home (hero, video stage, Selected work + project dialog/sheet, About, Writing fan, Shipping in public, Tools, Contact), Writing, article with TOC, Stack with fleet map + agent cards, 404.
+  - Site copy and open decisions live in `apps/web/src/lib/content/site.ts` (`DECISIONS`).
+  - Reviewed with better-interface / better-accessibility / break-ui and improve-animations / gestures; findings applied (commit ac7eb01).
+  - QA: 6 widths × 6 routes without horizontal scroll, one `<main>` and one `<h1>` each; light/dark and 390/1440 checked in the browser.
+  - Independent review + manual E2E (2026-11-27, agent-browser on `vite build` + preview, and the podman image): nginx served no `.html` routes (/stack, /blog, posts 404'd on direct load) and had no site 404; home bundle shipped the whole contributions JSON (202 kB → 35 kB); profile close lost focus; phone agent sheet ignored back/backdrop; a11y/reduced-motion polish. Fixed in fa52518, 6512a89, 59192e9, 3cdf79c. Second round (same day): stage frame, fleet rings/chips and agent avatar now crossfade opacity layers; Email me flies 160 ms linear + 260 ms ease-flow; fleet pause in the legend row with aria-pressed; no empty header on Home; Explore menu returns focus on Esc/back; Scroll hint contrast (305d5c1, 5400cf6, 0b00990, fc1331b, 3d047cf). Final E2E: 90/90 checks pass (390/1440 × light/dark, reduced motion, 720/320 px, axe, Web Vitals); report at `docs/reports/e2e-redesign-2026-11-27.pdf`. Still open: canonical/og tags and sitemap (need the site domain), large PNG covers of the 2025 posts (§4.5), a host that serves the prerendered `.html` routes and `404.html`. Playwright postponed by Febrian.
 
 - [x] **Motion Design & Micro-interactions (feat-014)** — 2026-07-08
   - Added motion foundation: `inview` Intersection Observer action, extended `motion.ts` tokens/helpers, and shared CSS utilities (`scroll-reveal`, `press-feedback`, `icon-hover-lift`, `input-focus-line`, `pop-in`).
@@ -19,7 +28,7 @@
   - Theme toggle: Sun/Moon crossfade with rotate; GitHub calendar per-week wave fill on inview.
   - Verification: `bun run -F web check` — 0 errors, 0 warnings.
 
-- [ ] **Easypanel GitHub Dockerfile Deployment (feat-013)** — 2026-07-06
+- [x] ~~**Easypanel GitHub Dockerfile Deployment (feat-013)**~~ — 2026-07-06, **removed 2026-11-27** (Febrian's call): `Dockerfile`, `nginx.conf`, `.dockerignore` and `docs/deployment.md` are gone from `redesign/portfolio-2026`. The nginx fix for refresh-404s (`try_files $uri $uri.html`, `error_page 404 /404.html`, commit fa52518) went with them, so whichever host comes next must itself map `/stack` → `stack.html` (prerendered `.html` routes) and serve `404.html` for unknown paths. History below kept for reference.
   - Researched lightweight Easypanel GitHub-source deployment approach for a static SvelteKit monorepo: root Dockerfile + multi-stage Bun build + Nginx runtime.
   - Added `Dockerfile`, `nginx.conf`, and `.dockerignore`.
   - Documented Easypanel repo-root build path, port `80`, health check, and safe GitHub contribution cache handling in `docs/deployment.md`.
@@ -116,16 +125,17 @@
 
 ### What's In Progress
 
-- [ ] Verify Easypanel GitHub Dockerfile deployment (feat-013)
+- [ ] Pick a host; it must serve prerendered `.html` routes and `404.html` (the nginx config that did this was removed 2026-11-27)
 
 ### What's Next
 
-- Run `docker build -t febriannugroho-portfolio .` and a container smoke test in an environment with Docker installed
 - Replace placeholder project/social URLs with real links
 - Deploy static output to CDN
 
 ## Blockers / Risks
 
+- Redesign waits on Febrian: theme toggle (kept), /blog vs /writing (kept /blog), /contact (kept), stage scene language (English proposal, flagged), old 2025 posts (kept, `legacy: true`). Fonts now self-hosted via @fontsource-variable (approved 2026-11-27).
+- Not verified: real-phone gestures (sheet/fan drag at 120 Hz), VoiceOver/NVDA, forced-colors, 200% zoom, Lighthouse.
 - mdsvex + SvelteKit 5 compatibility — needs `bun run -F web check` verification
 - Prerendering of `[slug]` route depends on `entries()` function working correctly
 

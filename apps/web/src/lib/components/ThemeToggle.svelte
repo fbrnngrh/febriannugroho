@@ -1,87 +1,50 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
-  import { Sun, Moon } from "lucide-svelte";
-  import { prefersReducedMotion } from "$lib/motion";
+  import Icon from "./Icon.svelte";
 
+  // Kept until Febrian decides (handoff §4.1): the design follows the system theme and has no toggle.
+  // Delete this component and its use in +layout.svelte to follow the system only.
   let isDark = $state(false);
 
-  function syncTheme() {
-    isDark = document.documentElement.classList.contains("dark");
-  }
-
   $effect(() => {
-    syncTheme();
+    isDark = document.documentElement.classList.contains("dark");
   });
 
   function toggle() {
     const root = document.documentElement;
-    const isReduced = prefersReducedMotion();
-
-    function apply() {
-      if (root.classList.contains("dark")) {
-        root.classList.remove("dark");
-        localStorage.setItem("theme", "light");
-      } else {
-        root.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-      }
-      isDark = root.classList.contains("dark");
-    }
-
-    if (!document.startViewTransition || isReduced) {
-      apply();
-      return;
-    }
-
-    const rect = document.querySelector(".theme-toggle")!.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    document.documentElement.style.setProperty("--tx", `${x}px`);
-    document.documentElement.style.setProperty("--ty", `${y}px`);
-
-    document.startViewTransition(() => apply());
+    // disableTransitionOnChange: no transitions for the frame the theme flips (04-motion.md §11)
+    root.classList.add("theme-switching");
+    isDark = root.classList.toggle("dark");
+    try {
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    } catch {}
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-switching")));
   }
 </script>
 
 <button
-  class="theme-toggle fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-bg/80 backdrop-blur-sm hover:bg-accent/10 transition-colors"
+  type="button"
+  class="theme-toggle icon-button"
   onclick={toggle}
-  aria-label="Toggle theme"
+  aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
 >
-  <span class="relative flex h-5 w-5 items-center justify-center">
-    {#if isDark}
-      <span class="theme-icon" in:fade={{ duration: prefersReducedMotion() ? 0 : 200 }}>
-        <Sun class="h-5 w-5" />
-      </span>
-    {:else}
-      <span class="theme-icon" in:fade={{ duration: prefersReducedMotion() ? 0 : 200 }}>
-        <Moon class="h-5 w-5" />
-      </span>
-    {/if}
-  </span>
+  <Icon name={isDark ? "sun" : "moon"} size={16} />
 </button>
 
 <style>
-  .theme-icon {
-    display: flex;
-    animation: theme-icon-in var(--motion-duration-normal) var(--motion-ease);
+  .theme-toggle {
+    position: fixed;
+    right: calc(16px + env(safe-area-inset-right));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 40;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    view-transition-name: theme-toggle;
   }
-
-  @keyframes theme-icon-in {
-    from {
-      opacity: 0;
-      transform: rotate(15deg) scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: rotate(0deg) scale(1);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .theme-icon {
-      animation: none;
+  @media (min-width: 768px) {
+    .theme-toggle {
+      right: calc(24px + env(safe-area-inset-right));
+      bottom: calc(24px + env(safe-area-inset-bottom));
     }
   }
 </style>

@@ -1,78 +1,55 @@
-import { prefersReducedMotion } from "$lib/motion";
-
+/**
+ * Scroll reveal (04-motion.md §9). Adds `is-in` once the element crosses 85% of the viewport
+ * (90% on phones), then stops observing. Pair with `data-reveal` and an optional `--reveal-delay`.
+ * Elements that enter in the same frame as many others (a fast jump) reveal together without delay.
+ */
 export type InviewOptions = {
   class?: string;
-  once?: boolean;
-  threshold?: number;
-  rootMargin?: string;
+  /** bottom root margin; "-5%" ≈ 95% trigger for the footer */
+  margin?: string;
 };
 
-const DEFAULT_OPTIONS: Required<InviewOptions> = {
-  class: "in-view",
-  once: true,
-  threshold: 0.08,
-  rootMargin: "0px 0px -8% 0px",
-};
+type Entry = { cls: string };
 
-type ElementState = {
-  activeClass: string;
-  once: boolean;
-};
+const observers = new Map<string, IntersectionObserver>();
+const states = new WeakMap<Element, Entry>();
 
-let sharedObserver: IntersectionObserver | null = null;
-const elementStates = new WeakMap<Element, ElementState>();
+function defaultMargin() {
+  return window.matchMedia("(max-width: 767.98px)").matches ? "-10%" : "-15%";
+}
 
-function getSharedObserver(): IntersectionObserver {
-  if (sharedObserver) return sharedObserver;
-
-  sharedObserver = new IntersectionObserver(
+function observerFor(margin: string) {
+  let io = observers.get(margin);
+  if (io) return io;
+  io = new IntersectionObserver(
     (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-
-        const state = elementStates.get(entry.target);
+      const entering = entries.filter((e) => e.isIntersecting);
+      const batch = entering.length > 4;
+      for (const entry of entering) {
+        const state = states.get(entry.target);
         if (!state) continue;
-
-        entry.target.classList.add(state.activeClass);
-
-        if (state.once) {
-          sharedObserver?.unobserve(entry.target);
-          elementStates.delete(entry.target);
-        }
+        if (batch) entry.target.classList.add("no-delay");
+        entry.target.classList.add(state.cls);
+        io!.unobserve(entry.target);
+        states.delete(entry.target);
       }
     },
-    {
-      threshold: DEFAULT_OPTIONS.threshold,
-      rootMargin: DEFAULT_OPTIONS.rootMargin,
-    },
+    { threshold: 0, rootMargin: `0px 0px ${margin} 0px` },
   );
-
-  return sharedObserver;
+  observers.set(margin, io);
+  return io;
 }
 
 export function inview(node: HTMLElement, options: InviewOptions = {}) {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
-
-  function reveal() {
-    node.classList.add(opts.class);
-  }
-
-  if (prefersReducedMotion()) {
-    reveal();
-    return {};
-  }
-
-  elementStates.set(node, { activeClass: opts.class, once: opts.once });
-  getSharedObserver().observe(node);
-
+  const cls = options.class ?? "is-in";
+  const margin = options.margin ?? defaultMargin();
+  const io = observerFor(margin);
+  states.set(node, { cls });
+  io.observe(node);
   return {
-    update(newOptions: InviewOptions) {
-      Object.assign(opts, { ...DEFAULT_OPTIONS, ...newOptions });
-      elementStates.set(node, { activeClass: opts.class, once: opts.once });
-    },
     destroy() {
-      sharedObserver?.unobserve(node);
-      elementStates.delete(node);
+      io.unobserve(node);
+      states.delete(node);
     },
   };
 }

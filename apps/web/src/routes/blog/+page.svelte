@@ -1,154 +1,144 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
-  import { Search, X } from "lucide-svelte";
-  import { inview } from "$lib/actions/inview";
-  import BackLink from "$lib/components/BackLink.svelte";
-  import BlogListItem from "$lib/components/BlogListItem.svelte";
-  import type { PageProps } from "./$types";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import { inview } from "#lib/actions/inview.ts";
+  import BackLink from "#lib/components/BackLink.svelte";
+  import { allPosts, formatDate, postHref, shortReadingTime } from "#lib/content/posts.ts";
+  import { WRITING_FILTERS, WRITING_INTRO, type WritingTag } from "#lib/content/site.ts";
 
-  let { data }: PageProps = $props();
+  // Writing (Figma 67:2322). Filter lives in ?tag= so it can be shared and Back works.
+  const posts = allPosts();
 
-  let searchQuery = $state("");
-  let selectedTag = $state("All");
-  let tagPopKey = $state(0);
-
-  let tagCounts = $derived.by(() => {
-    const counts: Record<string, number> = {};
-    let total = 0;
-
-    data.posts.forEach((post) => {
-      total++;
-      if (post.tags) {
-        post.tags.forEach((tag) => {
-          counts[tag] = (counts[tag] || 0) + 1;
-        });
-      }
-    });
-
-    return { counts, total };
+  let tag = $state<WritingTag>("All");
+  $effect(() => {
+    // client-only: prerendered pages can't read search params
+    const q = page.url.searchParams.get("tag");
+    tag = WRITING_FILTERS.find((f) => f.toLowerCase() === q?.toLowerCase()) ?? "All";
   });
 
-  let uniqueTags = $derived(["All", ...Object.keys(tagCounts.counts).sort()]);
-
-  let filteredPosts = $derived.by(() => {
-    return data.posts.filter((post) => {
-      const matchesSearch =
-        searchQuery.trim() === "" ||
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesTag =
-        selectedTag === "All" || (post.tags && post.tags.includes(selectedTag));
-
-      return matchesSearch && matchesTag;
-    });
-  });
-
-  function selectTag(tag: string) {
-    selectedTag = tag;
-    tagPopKey++;
+  function select(t: WritingTag) {
+    const url = new URL(page.url.href);
+    if (t === "All") url.searchParams.delete("tag");
+    else url.searchParams.set("tag", t.toLowerCase());
+    goto(url.href, { reset: false });
   }
+
+  const filtered = $derived(tag === "All" ? posts : posts.filter((p) => p.tags.includes(tag)));
+  const years = $derived(
+    Object.entries(
+      filtered.reduce<Record<string, typeof posts>>((acc, p) => {
+        (acc[p.date.slice(0, 4)] ??= []).push(p);
+        return acc;
+      }, {}),
+    ).sort(([a], [b]) => b.localeCompare(a)),
+  );
 </script>
 
 <svelte:head>
-  <title>Blog — Febrian Bayu Nugroho</title>
-  <meta
-    name="description"
-    content="Thoughts on software engineering, design, and building products."
-  />
+  <title>Writing · Febrian Bayu Nugroho</title>
+  <meta name="description" content={WRITING_INTRO} />
 </svelte:head>
 
-<div class="space-y-8">
-  <BackLink href="/" label="Back to home" />
+<div class="page col-text">
+  <header class="head">
+    <div data-reveal use:inview><BackLink href="/" label="Home" /></div>
+    <h1 data-reveal use:inview style:--reveal-delay="100ms">Writing</h1>
+    <p class="body-text intro" data-reveal use:inview style:--reveal-delay="200ms">{WRITING_INTRO}</p>
+  </header>
 
-  <div class="scroll-reveal" use:inview>
-    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Blog</h1>
-    <p class="mt-2 text-muted leading-relaxed">
-      Thoughts on software engineering, design, and building products.
-    </p>
-  </div>
-
-  <div class="scroll-reveal space-y-5 pt-2" use:inview>
-    <div class="relative w-full">
-      <div
-        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted"
-      >
-        <Search class="h-4.5 w-4.5" />
-      </div>
-      <input
-        type="text"
-        placeholder="Search articles by title or description..."
-        bind:value={searchQuery}
-        class="block w-full pl-10 pr-10 py-2.5 bg-secondary/30 hover:bg-secondary/50 focus:bg-secondary/40 border border-border focus:border-accent/40 rounded-xl text-sm placeholder:text-muted/60 focus:outline-none transition-all duration-200"
-      />
-      {#if searchQuery !== ""}
-        <button
-          onclick={() => (searchQuery = "")}
-          class="clear-btn-enter absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-fg transition-colors"
-          aria-label="Clear search"
-        >
-          <X class="h-4.5 w-4.5" />
-        </button>
-      {/if}
-    </div>
-
-    <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter blog posts by tag">
-      {#each uniqueTags as tag}
-        {@const count = tag === "All" ? tagCounts.total : tagCounts.counts[tag]}
-        <button
-          onclick={() => selectTag(tag)}
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 cursor-pointer hover:-translate-y-px
-            {selectedTag === tag
-            ? 'bg-accent/10 border-accent/25 text-accent dark:bg-accent/20 dark:border-accent/35'
-            : 'bg-secondary/20 hover:bg-secondary/50 border-border text-muted hover:text-fg'}"
-          class:pop-in={selectedTag === tag}
-          role="tab"
-          aria-selected={selectedTag === tag}
-        >
-          {tag}
-          <span class="text-[10px] opacity-75 font-normal">({count})</span>
-        </button>
+  {#if posts.length === 0}
+    <p class="empty">No posts yet.</p>
+  {:else}
+    <div class="filters" role="group" aria-label="Filter posts" data-reveal use:inview style:--reveal-delay="300ms">
+      {#each WRITING_FILTERS as f (f)}
+        <button type="button" class="filter" aria-pressed={tag === f} onclick={() => select(f)}>{f}</button>
       {/each}
     </div>
-  </div>
 
-  <div class="space-y-4 pt-2">
-    {#key `${selectedTag}-${searchQuery}-${tagPopKey}`}
-      {#if filteredPosts.length > 0}
-        <div class="scroll-reveal-group grid grid-cols-1 gap-4" use:inview in:fade={{ duration: 150 }}>
-          {#each filteredPosts as post, i (post.slug)}
-            <BlogListItem
-              date={post.date}
-              title={post.title}
-              description={post.description}
-              slug={post.slug}
-              tags={post.tags}
-              readingTime={post.readingTime}
-              index={i}
-            />
-          {/each}
-        </div>
-      {:else}
-        <div
-          class="py-12 text-center space-y-3 border border-dashed border-border rounded-2xl bg-secondary/10"
-          in:fade={{ duration: 200 }}
-        >
-          <p class="text-sm font-medium text-muted">No articles found</p>
-          <p class="text-xs text-muted/65 max-w-sm mx-auto px-4">
-            We couldn't find any articles matching your search or filters. Try adjusting your
-            terms.
-          </p>
-          <button
-            onclick={() => {
-              searchQuery = "";
-              selectedTag = "All";
-            }}
-            class="inline-flex items-center text-xs font-semibold text-accent hover:underline cursor-pointer"
-          >
-            Reset all filters
-          </button>
-        </div>
-      {/if}
-    {/key}
-  </div>
+    {#if filtered.length === 0}
+      <div class="empty">
+        <p>No posts in {tag} yet.</p>
+        <button type="button" class="chip-button" onclick={() => select("All")}>Show all posts</button>
+      </div>
+    {:else}
+      {#each years as [year, list], yi (year)}
+        <section class="year" aria-labelledby="y-{year}">
+          <h2 id="y-{year}" class="label-mono">{year}</h2>
+          <ul>
+            {#each list as post, i (post.slug)}
+              {@const index = years.slice(0, yi).reduce((n, [, l]) => n + l.length, 0) + i}
+              <li data-reveal use:inview style:--reveal-delay="{index < 6 ? index * 40 : 0}ms">
+                {#if post.planned}
+                  <div class="row planned">
+                    <span class="title">{post.title}</span>
+                    <span class="desc">{post.description}</span>
+                    <span class="meta">{shortReadingTime(post.readingTime)} · {formatDate(post.date, "short")} · coming soon</span>
+                  </div>
+                {:else}
+                  <a class="row" href={postHref(post.slug)}>
+                    <span class="title">{post.title}</span>
+                    <span class="desc">{post.description}</span>
+                    <span class="meta"
+                      >{shortReadingTime(post.readingTime)} · <time datetime={post.date}>{formatDate(post.date, "short")}</time></span
+                    >
+                  </a>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/each}
+    {/if}
+  {/if}
 </div>
+
+<style>
+  .page { padding-top: 160px; display: grid; gap: 40px; }
+  .head { display: grid; gap: 12px; justify-items: start; }
+  h1 { margin: 8px 0 0; font-size: 32px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
+  .intro { margin: 0; color: var(--fg-muted); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: var(--surface-default);
+    box-shadow: var(--shadow-button);
+    color: var(--fg-secondary);
+    font-size: 13px;
+    transition: background-color var(--dur-hover) var(--ease-out), color var(--dur-hover) var(--ease-out), scale var(--dur-release) var(--ease-out);
+  }
+  .filter:active { scale: 0.96; transition-duration: var(--dur-press); }
+  @media (prefers-reduced-motion: reduce) { .filter:active { scale: 1; } }
+  .filter[aria-pressed="true"] { background: var(--surface-inverse); color: var(--fg-on-inverse); }
+  @media (hover: hover) and (pointer: fine) {
+    .filter[aria-pressed="false"]:hover { background: var(--surface-muted); color: var(--fg-default); }
+  }
+  .year { display: grid; gap: 8px; }
+  .year h2 { margin: 0; font-weight: 400; }
+  ul { margin: 0; padding: 0; list-style: none; display: grid; }
+  .row {
+    display: grid;
+    gap: 2px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-default);
+    color: inherit;
+    text-decoration: none;
+    transition: opacity var(--dur-press) var(--ease-out);
+  }
+  a.row:active { opacity: 0.64; }
+  .title { font-size: 15px; font-weight: 500; line-height: 1.4; text-decoration: underline 1px transparent; text-underline-offset: 0.2em; transition: text-decoration-color var(--dur-hover) var(--ease-out); }
+  .desc { font-size: 15px; line-height: 1.5; color: var(--fg-muted); }
+  .meta { font: 12px/1.6 var(--font-mono); color: var(--fg-muted); }
+  .planned .title { color: var(--fg-secondary); }
+  @media (hover: hover) and (pointer: fine) {
+    a.row:hover .title { text-decoration-color: currentColor; }
+  }
+  .empty { display: grid; gap: 12px; justify-items: start; color: var(--fg-muted); }
+  .empty p { margin: 0; }
+  @media (max-width: 767.98px) {
+    .page { padding-top: 64px; }
+    h1 { font-size: 28px; }
+  }
+</style>
