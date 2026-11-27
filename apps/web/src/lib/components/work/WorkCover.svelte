@@ -169,4 +169,8 @@
   .meter { height: 6px; border-radius: 3px; background: var(--surface-muted); overflow: hidden; }
   .meter span { display: block; height: 100%; background: var(--orange-text); }
   .detail .device { font-size: 12px; min-height: 86%; }
+  @media (max-width: 767.98px) {
+    .detail { aspect-ratio: auto; min-height: 220px; padding: 44px 20px 0; }
+    .detail .device { min-height: 170px; }
+  }
 </style>
