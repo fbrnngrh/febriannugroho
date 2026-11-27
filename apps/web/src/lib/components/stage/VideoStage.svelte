@@ -59,9 +59,8 @@
   const chapter = $derived(SHOTS[index]!.chapter);
   const current = $derived(STAGE_CHAPTERS[chapter]!);
   const Scene = $derived(SHOTS[index]!.scene);
-  const shotInChapter = $derived(index - SHOTS.findIndex((s) => s.chapter === chapter));
 
-  // The chapter tone lives on <html>, so hero aura, page glow, frame and scene move together.
+  // The chapter tone lives on <html>, so the glow, frame and scene move together.
   $effect(() => {
     document.documentElement.dataset.stage = current.id;
   });
@@ -137,16 +136,9 @@
 </script>
 
 <section class="stage-section" bind:this={section} aria-label="Showcase">
-  <!-- One glow set in the chapter colour (--stage-c / --stage-c2 on :root): 6 blurred layers.
-       --glow-shift lives here, not on the section, so a shot change restyles 6 nodes instead of the scene. -->
-  <div class="glows" aria-hidden="true" style:--glow-shift={reduced ? 0 : shotInChapter}>
-    <span class="tint"></span>
-    <span class="orb o1"></span>
-    <span class="orb o2"></span>
-    <span class="orb o3"></span>
-    <span class="cloud c1"></span>
-    <span class="cloud c2"></span>
-  </div>
+  <!-- One soft radial glow in the chapter colour (--stage-c / --stage-c2), like Molly's section wash:
+       it fades to transparent before every edge, so it never reads as a box. -->
+  <div class="glows" aria-hidden="true"></div>
 
   <div class="col-stage inner" class:seen>
     <button
@@ -196,37 +188,20 @@
     overflow-x: clip;
   }
 
+  /* closest-side: the ellipse reaches transparent exactly at the box edges (screen sides, ~300 px above
+     and below the card), so there is no edge to see; a paint-only gradient, no blur layers */
   .glows {
     position: absolute;
-    inset: -320px 0 -260px;
+    inset: -300px 0 -240px;
     z-index: -1;
     pointer-events: none;
-    /* soft top and bottom edge instead of a clipped box */
-    mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 75%, transparent);
+    opacity: var(--stage-glow-opacity-1);
+    background:
+      radial-gradient(closest-side at 50% 52%, var(--stage-c), color-mix(in oklab, var(--stage-c) 55%, transparent) 45%, transparent),
+      radial-gradient(closest-side at 50% 40%, var(--stage-c2), transparent);
   }
-  .tint {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, transparent, var(--tint) 30%, var(--tint) 70%, transparent);
-    --tint: color-mix(in oklab, var(--stage-c) 22%, var(--bg-page));
-    opacity: 0.5;
-  }
-  .orb, .cloud { position: absolute; border-radius: 50%; }
-  /* slow drift per shot inside a chapter: up to 90 px desktop, 40 px on phones */
-  .orb {
-    --drift: 90px;
-    will-change: translate;
-    translate: calc(var(--glow-shift) / 3 * var(--drift)) calc(var(--glow-shift) / 3 * var(--drift) * -0.4);
-    transition: translate 1.8s var(--ease-stage);
-  }
-  .o1 { left: 8%; top: 18%; width: 62%; height: 52%; background: var(--stage-c); opacity: var(--stage-glow-opacity-1); filter: blur(160px); }
-  .o2 { right: 2%; top: 34%; width: 44%; height: 42%; background: var(--stage-c2); opacity: var(--stage-glow-opacity-2); filter: blur(120px); }
-  .o3 { left: 30%; top: 48%; width: 40%; height: 34%; background: var(--stage-c); opacity: var(--stage-glow-opacity-3); filter: blur(90px); }
-  .c1 { left: -6%; top: 6%; width: 50%; height: 30%; background: var(--stage-c2); opacity: var(--stage-cloud-opacity-1); filter: blur(200px); }
-  .c2 { right: -8%; bottom: 6%; width: 55%; height: 30%; background: var(--stage-c); opacity: var(--stage-cloud-opacity-2); filter: blur(110px); }
   @media (max-width: 767.98px) {
-    .glows { inset: -200px 0 -160px; }
-    .orb { --drift: 40px; }
+    .glows { inset: -180px 0 -140px; }
   }
 
   .frame {
