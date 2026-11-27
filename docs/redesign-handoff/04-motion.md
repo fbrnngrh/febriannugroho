@@ -92,10 +92,15 @@ export function prefersReducedMotion(): boolean {
 }
 ```
 
+> Diperbarui 27 Nov 2026 (review situs live §3): nilai lama terlalu halus sampai terasa tidak ada. Aturan baru: **kartu boleh naik 4 px; teks dan tombol tidak bergeser.** Gerak hanya di `(hover: hover) and (pointer: fine)` dan `prefers-reduced-motion: no-preference`.
+
 | Elemen | Hover | Durasi |
 |---|---|---|
 | Tautan nav, kembali, teks | warna ke `--fg-default`, garis bawah tumbuh dari kiri | 150 ms |
-| Kartu kerja, kartu tulisan, baris Writing | lapisan fg 4% + shadow y8 blur24 spread −8 10% | 200 ms |
+| Kartu Selected work | sampul naik 4 px + shadow `0 18px 40px -14px` 22% (gelap 60%), isi sampul `scale 1.03` (300 ms), ikon expand geser 2 px ↗ | 200 ms |
+| Kipas Writing | kartu depan naik 4 px + `--shadow-hover-card`, juga kartu "coming soon" (tanpa kursor pointer); kartu samping ±8° | pegas kipas |
+| Baris Writing | lapisan fg 4% + shadow y8 blur24 spread −8 10% | 200 ms |
+| Panggung video | bingkai naik 2 px, petunjuk "Click to pause" muncul; **video tidak dijeda** (§6) | 200 / 150 ms |
 | Node agen | lapisan fg 4% | 150 ms |
 | Email me | lihat §8 | 200 ms |
 | Tombol jeda, panah | latar ke `--surface-muted` | 150 ms |
@@ -206,49 +211,24 @@ dialog.modal[open]::backdrop { background: #0006; }
 
 ## 6. Panggung video (Home)
 
-3 slide × 4 shot. Komponen `VideoStage` dengan satu pengatur waktu.
+> **Diganti 27 Nov 2026 oleh dokumen 07 "Panggung v3"** (paket handoff: satu kartu video, tiga babak warna; belum disimpan di repo). Bagian ini hanya ringkasan; angka lengkap, gerak per shot, dan QA ada di dokumen 07. Implementasi: `src/lib/components/stage/VideoStage.svelte` + `stage/scenes/*.svelte`.
 
 | Hal | Nilai |
 |---|---|
-| Lama tiap shot | 1.8 s |
-| Shot terakhir sebelum ganti slide | 2.2 s |
-| Isi antar shot | 240 ms, opacity + geser 8 px, ease-out; elemen lama keluar bersamaan dengan elemen baru masuk |
-| S3 empat panel agen | stagger 0 / 60 / 100 / 130 ms |
-| Warna latar halaman + glow saat ganti slide | crossfade **700 ms** `--ease-stage` |
-| Gerak glow per shot | geser pelan hingga 90 px desktop, 45% dari itu (≈40 px) di ponsel, 1.8 s `--ease-stage` |
-| Segmen progres | terisi per shot (`scale: 0 1 → 1 1`, `transform-origin: left`, linear selama durasi shot) dengan aksen slide |
-| Berhenti | hover, fokus di dalam panggung, terlihat < 10%, tab tersembunyi, atau tombol jeda |
-| Lanjut | dari shot yang sama, bukan dari awal |
-| Kode di adegan | `font-variant-ligatures: none` |
+| Bentuk | satu kartu media, 12 shot dalam 3 babak diputar sebagai satu video berulang (22,8 s); **tanpa** counter, segmen, garis progres atau tombol |
+| Lama tiap shot | 1.8 s; shot terakhir tiap babak 2.2 s |
+| Isi antar shot | crossfade 240 ms, lama `opacity 1→0` + `-8px`, baru `opacity 0→1` + `8px→0`, `cubic-bezier(0.23, 1, 0.32, 1)` |
+| Dalam shot | satu gerak utama, masuk 300 ms ease-out, stagger 0 / 60 / 100 / 130 ms, tanpa pantulan |
+| Warna babak | `@property` `--scene-*`, `--stage-c`, `--stage-c2` di `:root` (`html[data-stage]`), transisi **600 ms** `--ease-stage`; aura hero, glow, bingkai, ilustrasi berubah bersama |
+| Caption | berganti di crossfade yang sama dengan isi |
+| Glow | satu set 6 lapisan blur; tepi `mask-image`, bukan `overflow: hidden` |
+| Jeda | kartu = `<button aria-pressed>`; klik / Space menjeda, label "Paused" 150 ms; lanjut dari sisa waktu shot |
+| Hover | tidak menjeda |
+| Berhenti sendiri | terlihat < 10%, tab tersembunyi, fokus keyboard di kartu |
+| Scroll | `animation-timeline: view()` scale 0.8→1, range `entry 0% cover 45%`; fallback IO 0.92→1 + opacity 500 ms |
+| Ponsel | kartu 1:1, ilustrasi `xMidYMid slice` (zona aman x 200–760 dari 960) |
 
-Warna latar halaman: crossfade 700 ms paling murah dengan dua lapisan `position: fixed` (warna lama dan baru) yang di-fade `opacity`, bukan transisi `background-color` pada `body` (yang memicu paint seluruh halaman). Glow = lingkaran blur di lapisan yang sama, di belakang konten.
-
-Kerangka pengatur waktu:
-
-```ts
-// VideoStage.svelte (sketsa)
-let slide = $state(0), shot = $state(0), paused = $state(false);
-let hovering = $state(false), focusedWithin = $state(false), visible = $state(false), tabHidden = $state(false);
-const running = $derived(!paused && !hovering && !focusedWithin && visible && !tabHidden);
-
-$effect(() => {
-  if (!running) return;
-  const last = shot === 3;
-  const id = setTimeout(() => {
-    if (last) { shot = 0; slide = (slide + 1) % 3; } else { shot += 1; }
-  }, last ? 2200 : 1800);
-  return () => clearTimeout(id);     // berhenti = timer dibatalkan; lanjut dari shot yang sama
-});
-// visible: IntersectionObserver dengan threshold [0, 0.1], visible = ratio >= 0.1
-// tabHidden: document.visibilityState === "hidden"
-```
-
-Catatan: waktu yang tersisa pada shot yang dijeda boleh dimulai ulang penuh saat lanjut; lebih sederhana dan tidak terasa.
-
-Reduced motion:
-- Tidak autoplay; panggung mulai dalam keadaan jeda (tombol menunjukkan "Play showcase").
-- Setiap slide menampilkan shot terakhirnya. Pindah slide lewat segmen / tombol.
-- Segmen berganti dengan crossfade warna 200 ms, tanpa isi bergerak; glow tidak bergeser.
+Reduced motion: tidak autoplay, tidak ada scale saat scroll; kartu diam di shot terakhir babak aktif, klik pindah babak (crossfade 200 ms, warna 200 ms), `aria-label` "Show next scene".
 
 ## 7. Kipas Writing (Home)
 
@@ -328,8 +308,9 @@ Opsi observer: `threshold: 0`, `rootMargin: "0px 0px -15% 0px"` (ponsel `-10%`),
 | Elemen | Pemicu | Delay / gerak |
 |---|---|---|
 | Hero | load pertama | 0 / 100 / 200 ms, "Scroll" +300 (§3) |
-| Panggung | 85% | panggung 0, caption +80 ms |
+| Panggung | terikat scroll | scale 0.8 → 1 dan glow membuka (§6 / dokumen 07); bukan `data-reveal` |
 | Aura | – | opacity saja, 500 ms |
+| Judul Selected work, Writing, Tools I use | 85% | `data-reveal` biasa (12 px + blur 4 px, 300 ms) |
 | Kartu Selected work | 85% | 0 / 60 / 120 ms; kartu ke-4 bersama ke-3 |
 | Paragraf About | 85% | 0 / 0 / 80 / 160 ms; Experience 240 ms |
 | Kipas Writing | 85% | depan 0, dua belakang +60 ms |
@@ -345,25 +326,34 @@ Opsi observer: `threshold: 0`, `rootMargin: "0px 0px -15% 0px"` (ponsel `-10%`),
 
 ## 10. Alur fleet (halaman Stack)
 
-Satu putaran ≈ 6 s, diulang. Easing `--ease-flow`. Pakai `transform` atau `offset-path` untuk paket yang berjalan di garis.
+> Diperbarui 27 Nov 2026 (review situs live §6, Figma 67:1511). Putaran lama 6 s dengan titik 7 px terlalu cepat (±4 dari 6 s tidak ada yang bergerak).
 
-| Elemen | Mulai | Durasi | Catatan |
-|---|---|---|---|
-| Paket Task → T3 Code | 0 ms | 320 ms | |
-| Cincin T3 Code | 240 ms | 240 ms | |
-| Paket T3 → JARVIS | 560 ms | 360 ms | |
-| 4 paket JARVIS → agen | 1040 ms | 400 ms | stagger 0 / 40 / 70 / 90 ms |
-| Kartu agen aktif | 1080 ms | 240 ms | avatar State=Aktif |
-| Merge | 2000 ms | 360 ms | |
-| Chip cek | 2200 ms | 160 ms | 50 ms antar chip |
-| Garis approve | 2200 ms | 240 ms | |
-| Ship | 2900 ms | 320 ms | |
-| Reset | 4800 ms | 400 ms | ulang setelah 6 s |
+Penghubung: satu SVG di belakang kartu, posisi dari `getBoundingClientRect` (ulang saat resize), ortogonal dengan sudut 8 px, panah 6×6. Garis diam solid seperti Figma; garis yang aktif membawa lapisan putus-putus `4 4` yang mengalir (`stroke-dashoffset 0 → -16`, 900 ms linear, berulang). Ditambah loop "fail → back to lead" (ungu `--fleet-text`, putus 3 3) dan garis "approve ship" (abu, solid, panah ke Ship).
+
+Paket: kepala 10 px dengan ekor gradien 24 px, `offset-path` mengikuti garis, Web Animations API (`element.animate()` dengan `delay`); jeda = `animation.pause()`.
+
+Timeline 10 s:
+
+| Waktu | Kejadian |
+|---|---|
+| 0 | paket Task → T3 Code (800 ms) |
+| 800 | cincin T3 Code |
+| 1400 | paket T3 → JARVIS (900 ms) |
+| 2300 | JARVIS aktif |
+| 2400 | 4 paket JARVIS → agen (1000 ms, stagger 0 / 80 / 140 / 180) |
+| 3400–5600 | agen bekerja: avatar aktif, `scale 1 → 1.04` 1.2 s |
+| 5600 | merge ke fleet check (900 ms) |
+| 6500 | chip cek menyala satu per satu (120 ms) |
+| 7200–8000 | paket pass → Ship (800 ms); 7300 garis approve dari ponsel |
+| 8000 | Ship menyala |
+| 9200 | jeda |
+| 10000 | ulang |
+
+Satu dari tiga putaran memakai jalur gagal (11,5 s): di 6500 "tests" merah, 6900 paket kembali lewat loop ke JARVIS (900 ms), 8200 cek diulang dan lulus, 8800 approve, 9500 Ship.
 
 - Mulai saat 50% peta terlihat; jeda saat < 10% terlihat atau tab tersembunyi.
-- Jeda saat hover atau fokus di peta. Klik agen menghentikan putaran (sampai kartu ditutup).
-- Implementasi termudah: Web Animations API (`element.animate()` dengan `delay`) untuk tiap elemen, dipicu ulang tiap 6 s; jeda = `animation.pause()` untuk semua.
-- Reduced motion: tetap di Langkah 0 (Diam), tanpa putaran.
+- Jeda saat hover atau fokus di peta, atau lewat tombol jeda. Klik agen menghentikan putaran (sampai kartu ditutup). Lanjut dari titik yang sama.
+- Reduced motion: tetap di Langkah 0 (Diam), garis diam, tanpa paket.
 
 ## 11. Lain-lain
 
