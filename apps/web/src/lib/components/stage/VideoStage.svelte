@@ -136,9 +136,10 @@
   }
 </script>
 
-<section class="stage-section" bind:this={section} aria-label="Showcase" style:--glow-shift={reduced ? 0 : shotInChapter}>
-  <!-- One glow set in the chapter colour (--stage-c / --stage-c2 on :root): 6 blurred layers -->
-  <div class="glows" aria-hidden="true">
+<section class="stage-section" bind:this={section} aria-label="Showcase">
+  <!-- One glow set in the chapter colour (--stage-c / --stage-c2 on :root): 6 blurred layers.
+       --glow-shift lives here, not on the section, so a shot change restyles 6 nodes instead of the scene. -->
+  <div class="glows" aria-hidden="true" style:--glow-shift={reduced ? 0 : shotInChapter}>
     <span class="tint"></span>
     <span class="orb o1"></span>
     <span class="orb o2"></span>
@@ -214,7 +215,7 @@
   /* slow drift per shot inside a chapter: up to 90 px desktop, 40 px on phones */
   .orb {
     --drift: 90px;
-    will-change: transform;
+    will-change: translate;
     translate: calc(var(--glow-shift) / 3 * var(--drift)) calc(var(--glow-shift) / 3 * var(--drift) * -0.4);
     transition: translate 1.8s var(--ease-stage);
   }
@@ -246,7 +247,8 @@
   }
   /* dark mode is not designed yet (07 §4): provisional 38% frame */
   :global(.dark) .frame { background: color-mix(in oklab, var(--stage-c) 38%, var(--surface-default)); }
-  .frame:active { scale: 0.99; }
+  /* press is quicker than the release (100 / 150 ms) */
+  .frame:active { scale: 0.99; transition-duration: 200ms, var(--dur-press); }
 
   .screen {
     /* chapter colours for the scene; the dark values are provisional until Febrian reviews them */
@@ -321,11 +323,6 @@
         animation-timeline: view();
         animation-range: entry 0% cover 45%;
       }
-      .frame {
-        animation: stage-round linear both;
-        animation-timeline: view();
-        animation-range: entry 0% cover 45%;
-      }
       .glows {
         animation: glow-open linear both;
         animation-timeline: view();
@@ -334,7 +331,6 @@
     }
   }
   @keyframes stage-grow { from { scale: 0.8; } }
-  @keyframes stage-round { from { border-radius: 32px; } }
   @keyframes glow-open { from { opacity: 0; scale: 0.7; } }
 
   @supports not (animation-timeline: view()) {

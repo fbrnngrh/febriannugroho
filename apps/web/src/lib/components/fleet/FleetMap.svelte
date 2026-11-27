@@ -183,6 +183,8 @@
   let clock = 0;
   let loopIndex = 0;
   let anims: Animation[] = [];
+  const REST: Phase = { at: 0, step: 0 };
+  let lastPhase: Phase | null = null;
   const currentLoop = () => (loopIndex % 3 === 2 ? LOOPS.fail : LOOPS.pass);
 
   function startLoop() {
@@ -207,7 +209,10 @@
   }
 
   function applyPhase(t: number) {
-    const phase: Phase = currentLoop().phases.findLast((p) => p.at <= t) ?? { at: 0, step: 0 };
+    const phase: Phase = currentLoop().phases.findLast((p) => p.at <= t) ?? REST;
+    // the clock ticks every frame; Svelte state only changes when the phase does
+    if (phase === lastPhase) return;
+    lastPhase = phase;
     step = phase.step;
     check = phase.check ?? "";
     activeEdges = phase.edges ?? [];
@@ -239,6 +244,7 @@
     trigger = e.currentTarget as HTMLElement;
     openAgent = id;
     step = 0;
+    lastPhase = null;
     await tick();
     if (!card || !map) return;
     if (window.matchMedia("(max-width: 767.98px)").matches) {

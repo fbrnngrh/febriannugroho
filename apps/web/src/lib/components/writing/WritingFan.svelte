@@ -204,10 +204,13 @@
     .post-card[data-pos="front"]:hover { box-shadow: var(--shadow-hover-card); }
     .post-card[data-pos="front"]:hover::before { opacity: 0.04; }
   }
+  /* the lift uses a 200 ms ease-out, not the 500 ms fan spring: hover is seen tens of times a day */
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .post-card[data-pos="front"]:hover { translate: 0 -4px; }
-    .fan:hover .post-card[data-pos="left"] { rotate: -8deg; }
-    .fan:hover .post-card[data-pos="right"] { rotate: 8deg; }
+    .post-card[data-pos="front"]:hover {
+      translate: 0 -4px;
+      transition: translate 200ms var(--ease-out), rotate 500ms var(--spring-fan), scale 500ms var(--spring-fan),
+        box-shadow var(--dur-card) var(--ease-out);
+    }
   }
   .art { flex: 1; padding: 24px 28px 8px; min-height: 0; }
   .text { display: grid; gap: 4px; padding: 0 22px 22px; }
@@ -248,15 +251,16 @@
     border: 0;
     background: none;
   }
-  /* a 6 px dot that grows into a 16 × 6 pill (scaling the dot squashed its rounded ends) */
+  /* a 16 × 6 pill clipped to a 6 px dot; the active one opens the clip (scaling squashed the round ends,
+     animating width ran layout) */
   .dot span {
-    width: 6px;
+    width: 16px;
     height: 6px;
-    border-radius: var(--radius-pill);
     background: var(--line-strong);
-    transition: width var(--dur-card) var(--ease-out), background-color var(--dur-card) var(--ease-out);
+    clip-path: inset(0 5px round 3px);
+    transition: clip-path var(--dur-card) var(--ease-out), background-color var(--dur-card) var(--ease-out);
   }
-  .dot[aria-current="true"] span { width: 16px; background: var(--fg-default); }
+  .dot[aria-current="true"] span { clip-path: inset(0 0 round 3px); background: var(--fg-default); }
   .dot[aria-current="true"] { width: 30px; }
 
   @media (max-width: 767.98px) {

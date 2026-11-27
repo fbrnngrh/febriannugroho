@@ -170,8 +170,10 @@
 @property --stage-c { syntax: "<color>"; inherits: true; initial-value: #c4a8fb; }
 @property --stage-c2 { syntax: "<color>"; inherits: true; initial-value: #d9c9fd; }
 
-:root {
-  /* fleet (purple) is the initial value of every property above */
+/* fleet (purple) is the initial value of every property above. The values switch on :root, but only the two
+   places that paint them transition: an inherited property animating on :root would restyle every element of
+   the page on each of the 36 frames (review-animations: recalc storm). */
+.stage-section, .aura {
   transition-property: --scene-bg, --scene-soft, --scene-mid, --scene-acc, --scene-ink, --scene-muted, --stage-c, --stage-c2;
   transition-duration: var(--dur-stage-bg);
   transition-timing-function: var(--ease-stage);
@@ -190,7 +192,7 @@
 :root.dark[data-stage="ci"] { --stage-c: #1f8a4a; --stage-c2: #17703b; }
 :root.dark[data-stage="site"] { --stage-c: #c15f3c; --stage-c2: #9e4a2d; }
 @media (prefers-reduced-motion: reduce) {
-  :root { transition-duration: 200ms; }
+  .stage-section, .aura { transition-duration: 200ms; }
 }
 
 @theme inline {
