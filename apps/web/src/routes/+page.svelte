@@ -111,7 +111,7 @@
 
   {#if fanPosts.length > 0}
     <section class="writing" aria-labelledby="writing-h">
-      <h2 id="writing-h" class="label-mono col-text">Writing</h2>
+      <h2 id="writing-h" class="label-mono col-text" data-reveal use:inview>Writing</h2>
       <div class="col-wide"><WritingFan posts={fanPosts} /></div>
       <div class="col-text writing-foot">
         <p class="body-text muted">{WRITING_INTRO}</p>
@@ -125,7 +125,7 @@
   </section>
 
   <section class="col-text tools" aria-labelledby="tools-h">
-    <h2 id="tools-h" class="label-mono">Tools I use</h2>
+    <h2 id="tools-h" class="label-mono" data-reveal use:inview>Tools I use</h2>
     <ul class="tool-list" data-reveal="noblur" use:inview>
       {#each TOOLS as t (t.name)}
         <li>
