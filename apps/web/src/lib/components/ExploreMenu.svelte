@@ -7,13 +7,18 @@
   import StatusDot from "./StatusDot.svelte";
 
   let dialog = $state<HTMLDialogElement>();
+  let trigger = $state<HTMLButtonElement>();
   const open = $derived(!!page.state.explore);
 
   // page.state is the single source: back button, Esc and Close all flow through it
   $effect(() => {
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+    if (!open && dialog.open) {
+      dialog.close();
+      // Safari never focuses a clicked button, so close() alone may leave focus on <body> (03 §3)
+      trigger?.focus();
+    }
   });
 
   function oncancel(e: Event) {
@@ -48,6 +53,7 @@
 <button
   type="button"
   class="explore-button"
+  bind:this={trigger}
   aria-expanded={open}
   aria-controls="explore-menu"
   onclick={() => openOverlay({ explore: true })}
