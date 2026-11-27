@@ -20,6 +20,8 @@
   import { allPosts, getPost, postHref, shortReadingTime } from "#lib/content/posts.ts";
   import { ABOUT, DECISIONS, PERSON, TOOLS, WRITING_INTRO } from "#lib/content/site.ts";
 
+  let { data } = $props();
+
   const enter = !heroPlayed;
   onMount(() => {
     heroPlayed = true;
@@ -121,7 +123,7 @@
   {/if}
 
   <section class="col-text" aria-label="Shipping in public" data-reveal use:inview>
-    <GitHubContributionCalendar />
+    <GitHubContributionCalendar weeks={data.contributions} />
   </section>
 
   <section class="col-text tools" aria-labelledby="tools-h">

@@ -1,18 +1,13 @@
 <script lang="ts">
-  import data from "#lib/data/github-contributions.json";
   import { PERSON } from "#lib/content/site.ts";
   import Icon from "./Icon.svelte";
 
-  // Shipping in public (Figma 26:1771, Color=Mono). Snapshot data from the build-time fetch script.
-  type Day = { date: string; contributionCount: number };
-  type Calendar = { totalContributions: number; weeks: { contributionDays: Day[] }[] };
+  // Shipping in public (Figma 26:1771, Color=Mono). Snapshot counts per day, trimmed in routes/+page.server.ts.
+  let { weeks }: { weeks: number[][] } = $props();
 
-  const WEEKS = 39; // ≈ 9 months
-  const source = (data as Record<string, Calendar | undefined>).lastYear;
-  const weeks = source?.weeks.slice(-WEEKS) ?? [];
-  const total = weeks.reduce((sum, w) => sum + w.contributionDays.reduce((s, d) => s + d.contributionCount, 0), 0);
+  const total = $derived(weeks.flat().reduce((sum, n) => sum + n, 0));
   // no data (fetch failed at build): hide the grid and never show "0" (03-ux-pages §5)
-  const hasData = weeks.length > 0 && total > 0;
+  const hasData = $derived(weeks.length > 0 && total > 0);
 
   function level(count: number) {
     if (count === 0) return 0;
@@ -34,8 +29,8 @@
     <div class="grid" aria-hidden="true">
       {#each weeks as week, wi (wi)}
         <div class="col">
-          {#each week.contributionDays as day (day.date)}
-            <span class="cell" data-level={level(day.contributionCount)}></span>
+          {#each week as count, di (di)}
+            <span class="cell" data-level={level(count)}></span>
           {/each}
         </div>
       {/each}
