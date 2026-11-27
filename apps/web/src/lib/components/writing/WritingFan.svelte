@@ -199,9 +199,15 @@
     transition: opacity var(--dur-card) var(--ease-out);
   }
   .post-card[data-pos="front"]:has(a):active::before { opacity: 0.08; transition-duration: var(--dur-press); }
+  /* every front card answers hover, "coming soon" ones too (without the link's pointer) */
   @media (hover: hover) and (pointer: fine) {
-    .post-card[data-pos="front"]:has(a):hover { box-shadow: var(--shadow-hover-card); }
-    .post-card[data-pos="front"]:has(a):hover::before { opacity: 0.04; }
+    .post-card[data-pos="front"]:hover { box-shadow: var(--shadow-hover-card); }
+    .post-card[data-pos="front"]:hover::before { opacity: 0.04; }
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .post-card[data-pos="front"]:hover { translate: 0 -4px; }
+    .fan:hover .post-card[data-pos="left"] { rotate: -8deg; }
+    .fan:hover .post-card[data-pos="right"] { rotate: 8deg; }
   }
   .art { flex: 1; padding: 24px 28px 8px; min-height: 0; }
   .text { display: grid; gap: 4px; padding: 0 22px 22px; }
@@ -242,14 +248,15 @@
     border: 0;
     background: none;
   }
+  /* a 6 px dot that grows into a 16 × 6 pill (scaling the dot squashed its rounded ends) */
   .dot span {
     width: 6px;
     height: 6px;
-    border-radius: 3px;
+    border-radius: var(--radius-pill);
     background: var(--line-strong);
-    transition: scale var(--dur-card) var(--ease-out), background-color var(--dur-card) var(--ease-out);
+    transition: width var(--dur-card) var(--ease-out), background-color var(--dur-card) var(--ease-out);
   }
-  .dot[aria-current="true"] span { background: var(--fg-default); scale: 3 1; }
+  .dot[aria-current="true"] span { width: 16px; background: var(--fg-default); }
   .dot[aria-current="true"] { width: 30px; }
 
   @media (max-width: 767.98px) {
