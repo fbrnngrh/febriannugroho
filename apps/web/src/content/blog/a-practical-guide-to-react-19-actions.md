@@ -5,6 +5,7 @@ date: "2025-05-20"
 readingTime: "6 min read"
 slug: "a-practical-guide-to-react-19-actions"
 tags: ["React", "JavaScript", "Frontend"]
+legacy: true
 coverImage: "/images/blog/react-actions-hero.png"
 ---
 

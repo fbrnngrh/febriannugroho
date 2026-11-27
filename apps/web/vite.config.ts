@@ -10,6 +10,13 @@ export default defineConfig({
     mdsvex({ extensions: [".md"] }),
     sveltekit({
       adapter: adapter(),
+      prerender: {
+        // /#work/<id> opens the project dialog; it is not an element id
+        handleMissingId: ({ id, message }) => {
+          if (id.startsWith("work/")) return;
+          throw new Error(message);
+        },
+      },
     }),
   ],
 });

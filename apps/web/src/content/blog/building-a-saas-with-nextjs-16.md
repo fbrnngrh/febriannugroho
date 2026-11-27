@@ -5,6 +5,7 @@ date: "2025-06-15"
 readingTime: "8 min read"
 slug: "building-a-saas-with-nextjs-16"
 tags: ["Next.js", "SaaS", "Fullstack"]
+legacy: true
 coverImage: "/images/blog/nextjs-saas-hero.png"
 ---
 

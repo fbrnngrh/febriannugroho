@@ -5,6 +5,7 @@ date: "2025-03-10"
 readingTime: "5 min read"
 slug: "mastering-tailwind-css-v4-with-oklch"
 tags: ["TailwindCSS", "CSS", "Design"]
+legacy: true
 coverImage: "/images/blog/tailwind-oklch-hero.png"
 ---
 
