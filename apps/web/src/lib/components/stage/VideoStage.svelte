@@ -188,20 +188,26 @@
     overflow-x: clip;
   }
 
-  /* closest-side: the ellipse reaches transparent exactly at the box edges (screen sides, ~300 px above
-     and below the card), so there is no edge to see; a paint-only gradient, no blur layers */
+  /* Like Molly: one glow centred on the card, big enough that its upper tail reaches the hero, so the
+     first screen is already washed in the chapter colour; there is no separate hero aura. The ellipse is
+     half the width (transparent at the screen sides) and exactly as tall as the distance to the box top
+     (transparent there); the shorter bottom side fades through a mask. Paint-only, no blur layers. */
   .glows {
+    --reach: 90dvh; /* how far the glow climbs above the stage */
+    --cy: calc(var(--reach) + 380px); /* about the card's centre */
     position: absolute;
-    inset: -300px 0 -240px;
+    inset: calc(-1 * var(--reach)) 0 -240px;
     z-index: -1;
     pointer-events: none;
     opacity: var(--stage-glow-opacity-1);
     background:
-      radial-gradient(closest-side at 50% 52%, var(--stage-c), color-mix(in oklab, var(--stage-c) 55%, transparent) 45%, transparent),
-      radial-gradient(closest-side at 50% 40%, var(--stage-c2), transparent);
+      radial-gradient(var(--rx, 50%) var(--cy) at 50% var(--cy), var(--stage-c), color-mix(in oklab, var(--stage-c) 70%, transparent) 50%, transparent),
+      radial-gradient(calc(var(--rx, 50%) * 0.76) calc(var(--cy) * 0.7) at 50% var(--cy), var(--stage-c2), transparent);
+    mask-image: linear-gradient(to top, transparent, #000 320px);
   }
   @media (max-width: 767.98px) {
-    .glows { inset: -180px 0 -140px; }
+    /* phones: wider than the screen so it reads as a wash, not a column; the screen edge is the edge */
+    .glows { --rx: 90%; --reach: 55dvh; --cy: calc(var(--reach) + 200px); bottom: -140px; mask-image: linear-gradient(to top, transparent, #000 200px); }
   }
 
   .frame {
@@ -303,15 +309,19 @@
         animation-timeline: view();
         animation-range: entry 0% cover 45%;
       }
+      /* the glow box starts far above the stage, so it follows the section's timeline, not its own */
+      .stage-section { view-timeline-name: --stage; }
       .glows {
         animation: glow-open linear both;
-        animation-timeline: view();
+        animation-timeline: --stage;
         animation-range: entry 0% cover 40%;
       }
     }
   }
   @keyframes stage-grow { from { scale: 0.8; } }
-  @keyframes glow-open { from { opacity: 0; scale: 0.7; } }
+  /* already visible on the first screen (the hero carries its tail), then deepens as the card arrives;
+     opacity only: scaling the box would pull its edges in off the screen sides */
+  @keyframes glow-open { from { opacity: calc(var(--stage-glow-opacity-1) * 0.8); } }
 
   @supports not (animation-timeline: view()) {
     :global(.js) .inner:not(.seen) { opacity: 0; scale: 0.92; }

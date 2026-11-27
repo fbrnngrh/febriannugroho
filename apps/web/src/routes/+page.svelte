@@ -151,10 +151,13 @@
   .hero {
     position: relative;
     display: grid;
-    min-height: 100dvh;
+    /* 85% of the screen: the stage card peeks at the fold, as on Molly */
+    min-height: 85dvh;
     padding: 0 0 120px;
     isolation: isolate;
     overflow: clip;
+    /* the stage glow climbs up behind the hero; this keeps the hero text above it */
+    z-index: 1;
   }
   .hero-nav { position: absolute; top: 32px; right: 40px; z-index: 2; }
   .intro {
